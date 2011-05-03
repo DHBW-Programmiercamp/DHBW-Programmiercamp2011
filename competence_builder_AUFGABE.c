@@ -13,7 +13,7 @@
 #else
 #include "SDL/SDL.h"
 #endif
-//Test Daniel
+
 // Graphics data - SDL variables
 SDL_Surface *graphics, *screen;  // Graphics data, screen data
 
@@ -136,29 +136,52 @@ int check_collision(element_type *el1, element_type *el2)
 	// TODO: Reflection on the side?
 	// TODO: landing/contact on top?
 	// TODO: What about the case, where an element lands on two other elements?
-	
+
+
+
+	if(el1->x + Size_comp > el2->x && el1->x < el2->x + Size_comp) {
+		if(el1->y + Size_comp > el2->y && el1->y < el2->y + Size_comp) {
+			// side collision
+
+		}
+	}
+	else if(el2->x + Size_comp > el1->x) {
+		if(el1->y < el2->y + Size_comp) {
+
+		}
+		else if(el1->y < el2->y + Size_comp) {
+			return 1;
+		}
+	}
 	return 0; // Maybe return some indicator regarding the type of collision?
 }
 
 // Update/move the existing competence element(s)
 void move_elements(game_state_type *g)
 {
-	
-	// some example code to start with...
+	int i,j,coll;
 	element_type *el;    // Pointer to some competence element
 	
-	el=&g->element[0];    // Example: Take first element
-	
-	// Normal motion based on current speed and gravity.
-	// This code should probably be used here somehow:
-	el->vy+=Gravity;   // Gravity affects vy
-    el->y+=el->vy;     // change position based on speed
-	el->x+=el->vx; 
+	for(i=0;i<g->cur_max;i++) {
+		el=&g->element[0];    // Take first element
 
-    if(el->y>=Win_floor_y) {   
-    	// TODO: Competence hits floor -> stop moving
+		if(el->y<Win_floor_y) { // Competence hits floor -> stop moving
+
+			// Check for collision with other elements
+			j=-1;
+			do {
+				j++;
+				coll = check_collision(el,g->element[j]);
+			} while(j<g->cur_max && coll==0);
+			if(coll==0) {
+				// Normal motion based on current speed and gravity.
+				el->vy+=Gravity;   // Gravity affects vy
+				el->y+=el->vy;     // change position based on speed
+				el->x+=el->vx;
+			}
+		}
 	}
-    // TODO: Check for collision with other elements...
+
 }
     
 /*******************************************************************
