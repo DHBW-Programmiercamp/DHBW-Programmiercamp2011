@@ -133,6 +133,7 @@ void init_level(game_state_type *g, player_data_type *p )
 	g->cur_act=0;
 	g->just_thrown=0;
 	g->all_points=0;
+
 	// Init player position
 	p->x=Win_width-Size_tile;
 	p->y=(float)CHARACTER_FLOOR;
@@ -196,18 +197,19 @@ void explode(element_type *el) {
 // return:
 // 0 no coll
 // 1 side coll
-// 2
-// 3
-int check_collision(element_type *el1, element_type *el2)
+// 2 bridge
+// 3 on top
+int check_collision(element_type *el1, element_type *el2, game_state_type *g)
 {
 	// TODO: maybe it helps to distinguish between the current, flying element and the others
 	// TODO: overlap between elements?
 	// TODO: Reflection on the side?
 	// TODO: landing/contact on top?
 	// TODO: What about the case, where an element lands on two other elements?
-
-	const float buffer=20.0;
-
+	int i;
+	char bridge;
+	const float buffer=6.0;
+	element_type *el3;
 
 	if(el1->x + Size_comp > el2->x && el1->x + Size_comp - buffer < el2->x &&
 			el1->y + Size_comp > el2->y && el1->y < el2->y + Size_comp) {
@@ -217,12 +219,29 @@ int check_collision(element_type *el1, element_type *el2)
 		if(el1->y + Size_comp > el2->y && el1->y + Size_comp < el2->y + buffer) {
 			// check if element is not more than half on the element below
 			if(el1->x + Size_comp/2 < el2->x || el1->x > el2->x + Size_comp/2) {
-				// find another block below
-
-				explode(el1);
+				// find another block below (bridge between two blocks)
+				i=0;
+				bridge=0;
+				while(i<=g->cur_act && bridge==0){
+					if ((el1->x + Size_comp >= g->element[i].x) &&
+							(el1->x <= g->element[i].x + Size_comp) &&
+							&(g->element[i])!= el1 && &(g->element[i])!= el2){
+						bridge=1;
+						el3=&(g->element[i]);
+					}
+					i++;
+				}
+				if (!bridge) explode(el1);
+				else {
+					if(el1->comp!=el2->comp) el1->points+=el2->points;
+					if(el1->comp!=el3->comp) el1->points+=el3->points;
+					g->all_points+= el1->points;
+					return 2;
+				}
 			}
 			else {
-				return 1;
+				if(el1->comp!=el2->comp) g->all_points+= el2->points;
+				return 3;
 			}
 
 		}
@@ -231,15 +250,7 @@ int check_collision(element_type *el1, element_type *el2)
 		}
 	}
 
-	/*
-	else if(el1->x + Size_comp > el1->x) {
-		if(el1->y < el2->y + Size_comp) {
 
-		}
-		else if(el1->y < el2->y + Size_comp) {
-			return 1;
-		}
-	}*/
 	return 0; // Maybe return some indicator regarding the type of collision?
 }
 
@@ -268,7 +279,7 @@ void move_elements(game_state_type *g)
 			do {
 				j++;
 				if(j!=i) {
-					coll = check_collision(&g->element[i],&g->element[j]);
+					coll = check_collision(&g->element[i],&g->element[j],g);
 				}
 				else {
 					coll=0;
@@ -281,6 +292,7 @@ void move_elements(game_state_type *g)
 				g->element[i].y+=g->element[i].vy;     // change position based on speed
 				g->element[i].x+=g->element[i].vx;
 			}
+
 		}
 		else if(g->element[i].x<MIN_PLAYER_X) {
 			explode(&g->element[i]);
