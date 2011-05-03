@@ -14,6 +14,7 @@
 #include "SDL/SDL.h"
 #endif
 //Test Daniel
+// Test Daniel 2
 // Graphics data - SDL variables
 SDL_Surface *graphics, *screen;  // Graphics data, screen data
 
