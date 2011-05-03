@@ -190,7 +190,7 @@ void move_elements(game_state_type *g)
 	int i,j,coll;
 	element_type *el;    // Pointer to some competence element
 	
-	for(i=0;i<g->cur_max;i++) {
+	for(i=0;i<g->cur_act;i++) {
 		el=&g->element[0];    // Take first element
 
 		if(el->y<Win_floor_y) { // Competence hits floor -> stop moving
@@ -200,7 +200,7 @@ void move_elements(game_state_type *g)
 			do {
 				j++;
 				coll = check_collision(el,&g->element[j]);
-			} while(j<g->cur_max && coll==0);
+			} while(j<g->cur_act && coll==0);
 			if(coll==0) {
 				// Normal motion based on current speed and gravity.
 				el->vy+=Gravity;   // Gravity affects vy
@@ -437,6 +437,7 @@ int main(int argc, char *argv[])
 
 		init_next_element(&game, &player);
 		// TODO: Next level?
+		printf("%d\n",game.cur_act);
 
 		// move_elements is called ten times before the graphics are updated
 		// Thus, a better simulation precision is achieved
