@@ -209,8 +209,8 @@ void draw_tile(int x, int y, int number)
 {
 	SDL_Rect src, dest;
 
-	src.w=dest.w=Size_tile;
-	src.h=dest.h=Size_tile;
+	src.w = dest.w = Size_tile;
+	src.h = dest.h = Size_tile;
 	src.x=number*Size_tile; src.y=0;
 	dest.x=x;	dest.y=y;
 	SDL_BlitSurface(graphics, &src, screen, &dest);
