@@ -41,6 +41,7 @@ const int Element_start_x=100;                // Start position of element
 const float Player_v_x=8.0f;                 // Player speed
 const float Gravity=0.03f;                   // Gravity 
 
+int comps[9][10]; // für die KI
 // Important data structures, TODO: change/extend if needed
 
 // Competence element
@@ -72,6 +73,7 @@ typedef struct {
 	int element_countdown;   // Countdown until next element is launched
 	int cur_act;             // Current element 
 	unsigned int all_points; // Gesamtpunktzahl
+	int just_thrown;		//wichtig für die KI
 } game_state_type;
 
 
@@ -117,10 +119,14 @@ void init_level(game_state_type *g, player_data_type *p )
 	g->element_countdown = g->element_pause / 20; //1200ms /20ms (20ms braucht ca. ein programmdurchlauf)
 	g->cur_act=0;
 	g->all_points=4096;
+	g->just_thrown=0;
 	// Init player position
 	p->x=Win_width/3.f;
 	p->y=(float)CHARACTER_FLOOR;
-
+	int i,j;
+	for(i=0; i<9; i++)
+		for(j=0; j<10;j++)
+			comps[i][j]=-1;
 }
 
 /***************************************************************************
@@ -149,7 +155,8 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 		g->element[g->cur_act]=el;
 		//g->element[g->cur_act]=*el;
 		g->cur_act++;
-		printf("cur_act: %d\n",g->cur_act);
+		just_thrown=1;
+		//printf("cur_act: %d\n",g->cur_act);
 	}
 
 	// Just in case, some notes regarding the physics - you don't need to understand that
@@ -160,26 +167,7 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 }
 
 
-int needed_position(game_state_type *g, player_data_type *pl, int x, int y)//calculates position of the student to place an object perfectly
-{
-	float studentabstand = (x-Element_start_x)/100;
-	float ebene = pow(2,floor(Win_floor_y-y/Size_comp));
-	/*
-	int foundfirst=0;
-	float tempx, tempy;
-	float tempvx, tempvy;
-	tempx=(float)Element_start_x;
-	tempy=(float)Win_floor_y;
-	tempvx=-(float)sqrt(tempy * 2. * Gravity);
-	tempvy=(float)((tempx-tempx)/(-tempvy/Gravity*2.));//nur vor dem Abwurf erlaubt
-	float precision = 5.0;
-	while (x<tempx+precision && x>tempx-precision && y<tempy+precision && y>tempy+precision)
-	{
-		tempvy+=Gravity;   // Gravity affects vy
-		tempy+=tempvy;     // change position based on speed
-		tempx+=tempvx;
-	}*/
-}
+
 
 void explode(element_type *el) {
 	el->comp = 4;
@@ -548,21 +536,82 @@ int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
  * TODO: -> this is the big competition challenge!                 *
  *           put your brightest ideas in here to win!               *
  ********************************************************************/
+int needed_position(game_state_type *g, player_data_type *pl, int x, int y)//calculates position of the student to place an object perfectly
+{
+	float studentabstand = (x-Element_start_x)/100;
+	float ebene = pow(2,floor(Win_floor_y-y/Size_comp));
+	return x;
+	/*
+	int foundfirst=0;
+	float tempx, tempy;
+	float tempvx, tempvy;
+	tempx=(float)Element_start_x;
+	tempy=(float)Win_floor_y;
+	tempvx=-(float)sqrt(tempy * 2. * Gravity);
+	tempvy=(float)((tempx-tempx)/(-tempvy/Gravity*2.));//nur vor dem Abwurf erlaubt
+	float precision = 5.0;
+	while (x<tempx+precision && x>tempx-precision && y<tempy+precision && y>tempy+precision)
+	{
+		tempvy+=Gravity;   // Gravity affects vy
+		tempy+=tempvy;     // change position based on speed
+		tempx+=tempvx;
+	}*/
+}
+
 int auto_control(game_state_type *g, player_data_type *pl)
 {
 	// TODO: This can become the hardest part
-	// Generate player motions such that it collects competence  
+	// Generate player motions such that it collects competence
+	if(just_thrown==1)
+	{
+		int nextx=0,nexty=0;
+		int nextcomp = g->curriculum[g->cur_act];
+		int i,j;
+		for(i=9; i>0; i--)//unterste Reihe auslassen
+			for(j=9; j>=0;j--)//ganz linke Spalte auslassen
+				if(comps[i][j]==-1 && comps[i-1][j1]!=nextcomp && comps[i-1][j]!=nextcomp && nextx==0)
+				{
+					nextx=j;
+					nexty=i;
+				}
+		if(nextx==0)
+		{
+			int j=9;
+			while(nextx==0)
+			{
+				if(comps[0][j]==-1)
+				{
+					nextx=0;
+					nexty=j;
+				}
+				j--;
+			}
+		}
+		just_thrown=0;
+		comps[nextx][nexty]=nextcomp;
+		int nextxpix=850-(nextx*60);
+		int nextypix=850-(nextx*60);
+		int x = needed_position(g, pl, nextxpix, nextypix);
+			if(x<pl.x)
+				key=-1;
+			else if(x>pl.x)
+				key=1;
+			else
+				key=0;
+			return key;
+	}
 	
-	
+
 	// The following is a very stupid student example implementation
 	// Can you do better?
-
+/*
 	static int move_state=0;
 	
 	move_state=(move_state+1)%50; 
 	if(move_state<20) return 1; // move left
 	if(move_state>29) return -1; // move right
 	return 0; // do not move
+	*/
 }
 
 // main function
