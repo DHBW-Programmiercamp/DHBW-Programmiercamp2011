@@ -115,7 +115,7 @@ void init_level(game_state_type *g, player_data_type *p )
 	g->element=(element_type *)malloc(sizeof(element_type)*g->cur_max);   // Simple example for one element, TODO: need to change this COMPLETED
 	g->element_countdown = g->element_pause / 20; //1200ms /20ms (20ms braucht ca. ein programmdurchlauf)
 	g->cur_act=0;
-	g->all_points=0;
+	g->all_points=4096;
 	// Init player position
 	p->x=Win_width/3.f;
 	p->y=(float)CHARACTER_FLOOR;
@@ -310,16 +310,31 @@ void draw_digit(int x, int y, int number, char size)
 	SDL_BlitSurface(graphics, &src, screen, &dest);
 }
 
-// Draw Score
-
-// Hier erweitern
-void draw_score(int x, int y, int number)
+// Draw Global Score
+void draw_globalscore(int x, int y, int number)
 {
 	SDL_Rect src, dest;
 
-	src.x = 0;
-	src.y=-10;
+	src.x = number*Size_digit_x;
+	src.y = Size_comp + Size_tile;
+	src.w = dest.w = Size_digit_x;
+	src.h = dest.h = Size_digit_y;
 	dest.x = x;	dest.y = y;
+
+	SDL_BlitSurface(graphics, &src, screen, &dest);
+}
+
+// Draw numbers on blocks
+void draw_blockscore(int x, int y, int number)
+{
+	SDL_Rect src, dest;
+
+	src.y = Size_digit_y + Size_comp + Size_tile;
+	src.x = number*Size_smalldigit_x;
+	src.w = dest.w = Size_smalldigit_x;
+	src.h = dest.h = Size_smalldigit_y;
+	dest.x = x;	dest.y = y;
+
 	SDL_BlitSurface(graphics, &src, screen, &dest);
 }
 
@@ -328,7 +343,7 @@ void draw_score(int x, int y, int number)
  *******************************************************************/
 void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 {
-    int x, y, i;
+    int x, y, i, sc;
     if(!g)
     	return;
 	
@@ -348,6 +363,27 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 	for(; x < Win_width; x += Size_tile)
 		draw_tile(x, Win_floor_y, TILE_TABLE);
 
+	//Draw player
+	// TODO: Dynamic position, if jumping
+	draw_tile((int)pl->x, CHARACTER_FLOOR, (key_x == 0 ? 0 : 1));
+
+	//Draw teacher
+	// TODO (optional): Animate/move the teacher in interesting ways...
+	draw_tile(50, CHARACTER_FLOOR, 3 );
+
+	//Draw global score
+	//Go Numbers downwards
+	int tmpscore = g->all_points;
+	for(x = 0, i = 1000; i > 0; i = floor((float)i/10), x++) {
+		int num = floor(tmpscore/i);
+		draw_globalscore(Size_digit_x*x, 0, num);
+		tmpscore -= i*num;
+	}
+
+	// Draw elements
+	for(i = 0; i < g->cur_act; i++)
+		draw_competence(g->element[i].x, g->element[i].y, g->element[i].comp);
+
 
 
 	// TODO: draw competences, some stupid examples
@@ -355,17 +391,11 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 	//draw_competence(400, Win_floor_y, 1);
 	//draw_competence(400, 300, 4);
 
-	// Draw player (better do not change the x,y coordinates)
-	draw_tile((int)pl->x, CHARACTER_FLOOR, (key_x == 0 ? 0 : 1));
 
-	// Draw teacher 
-	// TODO (optional): Animate/move the teacher in interesting ways...
-	// TODO: Dynamic position, if jumping
-	draw_tile(50, CHARACTER_FLOOR, 3 );
 
-	// Draw elements
-	for(i = 0; i < g->cur_act; i++)
-		draw_competence(g->element[i].x, g->element[i].y, g->element[i].comp);
+
+
+
 
 	// TODO (optional): Draw list of remaining competences in curriculum
 	
@@ -390,11 +420,11 @@ int key_control(int *key_x) /* TODO: Final Testing */
 	if(keyevent.type==SDL_KEYDOWN) {
         switch(keyevent.key.keysym.sym){
            case SDLK_LEFT:
-        	   *key_x+=-1;
+        	   (*key_x)--;
         	   break;
 
            case SDLK_RIGHT:
-        	   *key_x+=1;
+        	   (*key_x)++;
         	   break;
 
            case SDLK_ESCAPE:
@@ -410,11 +440,11 @@ int key_control(int *key_x) /* TODO: Final Testing */
 		switch(keyevent.key.keysym.sym){
 
 		case SDLK_LEFT:
-			*key_x+=1;
+			(*key_x)++;
 			break;
 
 		case SDLK_RIGHT:
-			*key_x+=-1;
+			(*key_x)--;
 			break;
 
 			default: break;
