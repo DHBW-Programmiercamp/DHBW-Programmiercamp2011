@@ -542,6 +542,7 @@ int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
         	   break;
            case 'a':
         	   auto_control_val = !auto_control_val;
+        	   *key_x=0;
         	   break;
            case 's':
         	   *key_c=1;
