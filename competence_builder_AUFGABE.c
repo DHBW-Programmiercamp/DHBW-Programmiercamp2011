@@ -197,24 +197,27 @@ int check_collision(element_type *el1, element_type *el2)
 void move_elements(game_state_type *g)
 {
 	int i,j,coll;
-	element_type *el;    // Pointer to some competence element
-	
-	for(i=0;i<g->cur_act;i++) {
-		el=&g->element[i];    // Take first element
-		printf("%d\n",el->y);
-		if(el->y>=Win_floor_y) { // Competence hits floor -> stop moving
 
+	for(i=0;i<g->cur_act;i++) {
+
+		if(g->element[i].y<=Win_floor_y) { // Competence hits floor -> stop moving
 			// Check for collision with other elements
 			j=-1;
 			do {
 				j++;
-				coll = check_collision(el,&g->element[j]);
+				if(j!=i) {
+					coll = check_collision(&g->element[i],&g->element[j]);
+				}
+				else {
+					coll=0;
+				}
 			} while(j<g->cur_act && coll==0);
+
 			if(coll==0) {
 				// Normal motion based on current speed and gravity.
-				el->vy+=Gravity;   // Gravity affects vy
-				el->y+=el->vy;     // change position based on speed
-				el->x+=el->vx;
+				g->element[i].vy+=Gravity;   // Gravity affects vy
+				g->element[i].y+=g->element[i].vy;     // change position based on speed
+				g->element[i].x+=g->element[i].vx;
 			}
 		}
 	}
@@ -478,6 +481,7 @@ int main(int argc, char *argv[])
 		for(i=0; i<10; i++)
 			move_elements(&game);
 
+		// Wenn die Automatik l�uft sich dieser auch bedienen
 		// Wenn die Automatik l�uft sich dieser auch bedienen
 		if (Auto_control) {
 			key_x = 0;
