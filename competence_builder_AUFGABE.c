@@ -78,6 +78,7 @@ typedef struct {
 int load_game_data(game_state_type *g, char *filename)
 {
 	FILE *file;
+	short int cur_count=0; 	// Zähler für das Einlesen des Curriculums
 
     // Open the file for reading
     file=fopen(filename,"r"); 
@@ -88,6 +89,17 @@ int load_game_data(game_state_type *g, char *filename)
     
     // TODO: Read level data, allocate memory if needed
     
+    		fscanf(file,"%d",&g->levels);		// Lese aus File erste Zahl: Level Anzahl
+    		fscanf(file,"%d %d",&g->cur_max, &g->element_pause);		// Lese aus File Anzahl Blöcke, Wartezeit für Block
+
+    		g->curriculum = malloc(sizeof(char) * g->cur_max);  //Seicher für Array curriculum allokieren
+
+    		fscanf(file,"\r");		// Lese aus File: Zeilenumbruch
+
+    		for(cur_count=0;cur_count<(g->cur_max);cur_count++) { 		//Schleife um alle Blöcke  nacheinander auszulesen
+    			fscanf(file,"%c ",&(g->curriculum[cur_count]) );		// Lese aus File Blöcke...
+    		}
+
     fclose(file);    // close file
     return 0;
 }
@@ -143,6 +155,11 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 // TODO (optional/suggestion):
 //        Write a function that checks whether/how two competence elements are colliding
 //        Feel free to use the TODO suggestions - or completely ignore them, if you have your own ideas
+// return:
+// 0 no coll
+// 1 side coll
+// 2
+// 3
 int check_collision(element_type *el1, element_type *el2)
 {
 	// TODO: maybe it helps to distinguish between the current, flying element and the others
@@ -152,21 +169,21 @@ int check_collision(element_type *el1, element_type *el2)
 	// TODO: What about the case, where an element lands on two other elements?
 
 
-
-	if(el1->x + Size_comp > el2->x && el1->x < el2->x + Size_comp) {
-		if(el1->y + Size_comp > el2->y && el1->y < el2->y + Size_comp) {
+	if(el1->y + Size_comp > el2->y && el1->y < el2->y + Size_comp) {
+		if(el1->x + Size_comp > el2->x && el1->x < el2->x + Size_comp) {
 			// side collision
-
+			el1->vx=-0.9*el1->vx;
+			return 1;
 		}
-	}
-	else if(el2->x + Size_comp > el1->x) {
+	}/*
+	else if(el1->x + Size_comp > el1->x) {
 		if(el1->y < el2->y + Size_comp) {
 
 		}
 		else if(el1->y < el2->y + Size_comp) {
 			return 1;
 		}
-	}
+	}*/
 	return 0; // Maybe return some indicator regarding the type of collision?
 }
 
@@ -335,7 +352,7 @@ void paint_all(game_state_type *g, player_data_type *pl)
  ********************************************************************/
 int key_control(int *key_x) /* TODO: Final Testing */
 {
-	SDL_Event keyevent;    
+	SDL_Event keyevent;
 
 	SDL_PollEvent(&keyevent);
 	if(keyevent.type==SDL_KEYDOWN) {
@@ -418,6 +435,10 @@ int main(int argc, char *argv[])
     key_x = 0;
     // Abbrechen, wenn key_control 0 zur�ckgibt.
 	while(key_control(&key_x)) {
+
+		//Draw first
+		paint_all(&game, &player);
+
 		init_next_element(&game, &player);
 		// TODO: Next level?
 
