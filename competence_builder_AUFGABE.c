@@ -280,26 +280,40 @@ void paint_all(game_state_type *g, player_data_type *pl)
  ********************************************************************/
 int key_control()
 {
-	static int key_x=0;    // Maybe this is of use to you... - otherwise just delete it 
+	static int key_x=0;    // Maybe this is of use to you... - otherwise just delete it
 	SDL_Event keyevent;    
 
 	SDL_PollEvent(&keyevent);
 	if(keyevent.type==SDL_KEYDOWN) {
         switch(keyevent.key.keysym.sym){
-           case SDLK_LEFT: /* TODO: Do something */  break;
+           case SDLK_LEFT: /* TODO: Do something */
+        	   key_x=-1;
+        	   break;
+
            case SDLK_RIGHT: /* TODO: Do something */ break;
-	       case SDLK_ESCAPE: return 0; break;
+               key_x=+1;
+           case SDLK_ESCAPE: return 0; break;
+
            default: break;
 		}
 	}
+
 	else if(keyevent.type==SDL_KEYUP) {
+
 		switch(keyevent.key.keysym.sym){
-           case SDLK_LEFT: /* TODO: Do something */  break;
-           case SDLK_RIGHT: /* TODO: Do something */  break;
-           default: break;
+
+		case SDLK_LEFT: /* TODO: Do something */
+			key_x=0;
+			break;
+
+		case SDLK_RIGHT: /* TODO: Do something */
+			key_x=0;
+			break;
+
+			default: break;
 		}
 	}
-	return 1; // Maybe use return value?
+	return key_x; // Maybe use return value?
 }
 
 /********************************************************************
