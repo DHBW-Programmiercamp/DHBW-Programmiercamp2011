@@ -1,2 +1,4 @@
 *.o
 *.mk
+Debug/
+Release/
