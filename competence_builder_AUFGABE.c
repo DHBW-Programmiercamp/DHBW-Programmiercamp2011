@@ -148,6 +148,7 @@ void init_level(game_state_type *g, player_data_type *p )
  ***************************************************************************/
 void init_next_element(game_state_type *g, player_data_type *pl)
 {
+	int i=0;
 	// TO DO: ...
 	// TO DO: Initialize a new competence element, when/before it is thrown by the teacher
 	// TO DO: Check if there are further elements or whether the level is completed
@@ -157,6 +158,14 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 	if(g->element_countdown == 0 && g->cur_act!=g->cur_max)//Soll er gerade werfen und sind noch Elemente zum Werfen da
 	{
 		element_type el;
+		g->all_points = 0;
+		for (i=0; i <= g->cur_act; i++){
+
+			g->all_points += g->element[i].points;
+
+		}
+
+
 		//el=(element_type *)malloc(sizeof(element_type));
 		g->element_countdown = g->element_pause / 20;
 		// The teacher throws in such direction that the competence lands at the current player position
@@ -189,6 +198,7 @@ void explode(element_type *el) {
 	el->vx=0;
 	el->vy=0;
 	el->countdown=50;
+	el->points=0;
 }
 
 // TODO (optional/suggestion):
@@ -233,14 +243,16 @@ int check_collision(element_type *el1, element_type *el2, game_state_type *g)
 				}
 				if (!bridge) explode(el1);
 				else {
-					if(el1->comp!=el2->comp) el1->points+=el2->points;
-					if(el1->comp!=el3->comp) el1->points+=el3->points;
-					g->all_points+= el1->points;
+					if(el1->points==0) {
+						if(el1->comp!=el2->comp) el1->points+=el2->points;
+						if(el1->comp!=el3->comp) el1->points+=el3->points;
+					}
 					return 2;
 				}
 			}
 			else {
-				if(el1->comp!=el2->comp) g->all_points+= el2->points;
+				if(el1->comp!=el2->comp  && el1->points==0) el1->points=el2->points;
+				if(el1->comp!=el2->comp  && el1->points==0 && el2->points==0) el1->points=1;
 				return 3;
 			}
 
@@ -297,8 +309,9 @@ void move_elements(game_state_type *g)
 		else if(g->element[i].x<MIN_PLAYER_X) {
 			explode(&g->element[i]);
 		}
-		else {
+		else if (g->element[i].comp<4){
 			g->element[i].points=1;
+			//g->all_points+=1;
 		}
 	}
 
