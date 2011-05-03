@@ -158,7 +158,7 @@ int check_collision(element_type *el1, element_type *el2)
 		if(el1->x + Size_comp > el2->x && el1->x < el2->x + Size_comp) {
 			// side collision
 			el1->vx=-0.9*el1->vx;
-			return
+			return 1;
 		}
 	}/*
 	else if(el1->x + Size_comp > el1->x) {
