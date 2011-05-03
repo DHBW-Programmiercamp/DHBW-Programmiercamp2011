@@ -25,7 +25,7 @@
 SDL_Surface *graphics, *screen;  // Graphics data, screen data
 
 // Wenn die Autimatik l�uft
-const int Auto_control=0;
+int auto_control_val = 0;
 
 // Definition of sizes of Graphic elements, according to graphics in competence_builder.bmp
 const int Size_comp=50;                       // Size (x==y) of competence element
@@ -493,7 +493,9 @@ int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
            case SDLK_RIGHT:
         	   (*key_x)++;
         	   break;
-
+           case 'a':
+        	   auto_control_val = !auto_control_val;
+        	   break;
            case 's':
         	   *key_c=1;
         	   break;
@@ -621,7 +623,7 @@ int main(int argc, char *argv[])
 
 			// Wenn die Automatik l�uft sich dieser auch bedienen
 			// Wenn die Automatik l�uft sich dieser auch bedienen
-			if (Auto_control) {
+			if (auto_control_val) {
 				key_x = 0;
 				key_x=auto_control(&game, &player); // use only for 'robot player'
 			}
