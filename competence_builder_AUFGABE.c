@@ -260,7 +260,7 @@ void paint_all(game_state_type *g, player_data_type *pl)
 			draw_tile(x, y, 4+(x/Size_tile%3));
 
 	// TODO: draw competences, some stupid examples
-	draw_competence(100, 100, 3); 
+	draw_competence(100, 100, 3);
 	draw_competence(400, Win_floor_y, 1); 
 	draw_competence(400, 300, 4); 
 
@@ -282,28 +282,46 @@ void paint_all(game_state_type *g, player_data_type *pl)
 /********************************************************************
  * SDL-Function to check for keyboard events                        *
  ********************************************************************/
-int key_control()
+int key_control() /* TODO: Final Testing */
 {
-	static int key_x=0;    // Maybe this is of use to you... - otherwise just delete it 
+	static int key_x=0;    // Maybe this is of use to you... - otherwise just delete it
 	SDL_Event keyevent;    
 
 	SDL_PollEvent(&keyevent);
 	if(keyevent.type==SDL_KEYDOWN) {
         switch(keyevent.key.keysym.sym){
-           case SDLK_LEFT: /* TODO: Do something */  break;
-           case SDLK_RIGHT: /* TODO: Do something */ break;
-	       case SDLK_ESCAPE: return 0; break;
+           case SDLK_LEFT:
+        	   key_x=-1;
+        	   break;
+
+           case SDLK_RIGHT:
+        	   key_x=+1;
+        	   break;
+
+           case SDLK_ESCAPE:
+        	   return 0;
+        	   break;
+
            default: break;
 		}
 	}
+
 	else if(keyevent.type==SDL_KEYUP) {
+
 		switch(keyevent.key.keysym.sym){
-           case SDLK_LEFT: /* TODO: Do something */  break;
-           case SDLK_RIGHT: /* TODO: Do something */  break;
-           default: break;
+
+		case SDLK_LEFT:
+			key_x=5;
+			break;
+
+		case SDLK_RIGHT:
+			key_x=5;
+			break;
+
+			default: break;
 		}
 	}
-	return 1; // Maybe use return value?
+	return key_x; // Maybe use return value?
 }
 
 /********************************************************************
@@ -346,7 +364,9 @@ int main(int argc, char *argv[])
     // TODO optional: show_splash_screen, select player, ...
     
     // The main control loop 
-    while(key_control()) {
+    // Wenn kein Autocontrol:
+    key_x = key_control();
+    while(key_x) {
     	
     	init_next_element(&game, &player);
 		// TODO: Next level?
@@ -359,10 +379,12 @@ int main(int argc, char *argv[])
 		
 		// TODO: Check keyboard input for manual player
 		// TODO: How to abort the game?
-		key_x=auto_control(&game, &player); // use only for 'robot player'
+		//key_x=auto_control(&game, &player); // use only for 'robot player'
 
 		player.x+=key_x*Player_v_x;    // Calculate new x-position
 		// TODO: Check for screen borders / keep your distance from the teacher...
+
+
 				    	
 		paint_all(&game, &player);  // Update graphics
         
