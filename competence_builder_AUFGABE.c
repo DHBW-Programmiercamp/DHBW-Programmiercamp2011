@@ -92,17 +92,17 @@ int load_game_data(game_state_type *g, char *filename)
     
     // TODO: Read level data, allocate memory if needed
     
-    		fscanf(file,"%d",&g->levels);		// Lese aus File erste Zahl: Level Anzahl
-    		fscanf(file,"%d %d",&g->cur_max, &g->element_pause);		// Lese aus File Anzahl Blöcke, Wartezeit für Block
+	fscanf(file,"%d",&g->levels);		// Lese aus File erste Zahl: Level Anzahl
+	fscanf(file,"%d %d",&g->cur_max, &g->element_pause);		// Lese aus File Anzahl Blöcke, Wartezeit für Block
 
-    		g->curriculum = (char *)malloc(sizeof(char) * g->cur_max);  //Seicher für Array curriculum allokieren
+	g->curriculum = (char *)malloc(sizeof(char) * g->cur_max);  //Seicher für Array curriculum allokieren
 
-    		fscanf(file,"\r");		// Lese aus File: Zeilenumbruch
+	fscanf(file,"\r");		// Lese aus File: Zeilenumbruch
 
-    		for(cur_count=0;cur_count<(g->cur_max);cur_count++) { 		//Schleife um alle Blöcke  nacheinander auszulesen
-    			fscanf(file,"%c ",&(g->curriculum[cur_count]) );		// Lese aus File Blöcke...
-    			g->curriculum[cur_count] = g->curriculum[cur_count] - 48; // ASCII Konvertieren
-    		}
+	for(cur_count=0;cur_count<(g->cur_max);cur_count++) { 		//Schleife um alle Blöcke  nacheinander auszulesen
+		fscanf(file,"%c ",&(g->curriculum[cur_count]) );		// Lese aus File Blöcke...
+		g->curriculum[cur_count] = g->curriculum[cur_count] - 48; // ASCII Konvertieren
+	}
 
     fclose(file);    // close file
     return 0;
@@ -346,7 +346,7 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 
 	// Draw elements
 	for(i = 0; i < g->cur_act; i++)
-		draw_competence(g->element[i].x, g->element[i].y, g->element[i].comp-48);
+		draw_competence(g->element[i].x, g->element[i].y, g->element[i].comp);
 
 	// TODO (optional): Draw list of remaining competences in curriculum
 	
