@@ -163,7 +163,7 @@ void explode(element_type *el) {
 	el->comp = 4;
 	el->vx=0;
 	el->vy=0;
-	el->countdown=10;
+	el->countdown=50;
 }
 
 // TODO (optional/suggestion):
