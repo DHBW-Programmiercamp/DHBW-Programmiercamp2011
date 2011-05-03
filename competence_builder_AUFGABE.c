@@ -22,6 +22,9 @@
 // Graphics data - SDL variables
 SDL_Surface *graphics, *screen;  // Graphics data, screen data
 
+// Wenn die Autimatik läuft
+const int Auto_control=0;
+
 // Definition of sizes of Graphic elements, according to graphics in competence_builder.bmp
 const int Size_comp=50;                       // Size (x==y) of competence element
 const int Size_tile=96;                       // Size (x==y) of player and background graphics
@@ -428,8 +431,9 @@ int main(int argc, char *argv[])
     // TODO optional: show_splash_screen, select player, ...
     
     // The main control loop 
-    // Wenn kein Autocontrol:
+    // key_x initialisieren
     key_x = 0;
+    // Abbrechen, wenn key_control 0 zurückgibt.
 	while(key_control(&key_x)) {
 
 		//Draw first
@@ -440,16 +444,26 @@ int main(int argc, char *argv[])
 
 		// move_elements is called ten times before the graphics are updated
 		// Thus, a better simulation precision is achieved
-		// witout spending too much performance on (slow) graphics output
+		// without spending too much performance on (slow) graphics output
 		for(i=0; i<10; i++)
 			move_elements(&game);
 
-		// TODO: Check keyboard input for manual player
-		// TODO: How to abort the game?
-		//key_x=auto_control(&game, &player); // use only for 'robot player'
-		player.x+=key_x*Player_v_x;    // Calculate new x-position
+		// Wenn die Automatik läuft sich dieser auch bedienen
+		if (Auto_control) {
+			key_x = 0;
+			key_x=auto_control(&game, &player); // use only for 'robot player'
+		}
 
-		// TODO: Check for screen borders / keep your distance from the teacher...
+		/* Nur bewegen, wenn
+		 * - der Player innerhalb der Bewegungsreichweite ist
+		 * - der Player rechts außerhalb der Bewegungsreichweite ist und sich nach links bewegen möchte
+		 * - der Player links außerhalb der Bewegungsreichweite ist und sich nach rechts bewegen möchte
+		 */
+		if ((player.x + Size_tile <= Win_width && player.x >= MIN_PLAYER_X) || (player.x + Size_tile > Win_width && key_x < 0) || (player.x < MIN_PLAYER_X && key_x > 0)) {
+			player.x+=key_x*Player_v_x;    // Calculate new x-position
+		}
+
+		paint_all(&game, &player);  // Update graphics
 
 		SDL_Delay(20); // wait 20 ms
 	}
