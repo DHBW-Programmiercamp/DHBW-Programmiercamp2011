@@ -278,7 +278,7 @@ void paint_all(game_state_type *g, player_data_type *pl)
 /********************************************************************
  * SDL-Function to check for keyboard events                        *
  ********************************************************************/
-int key_control()
+int key_control() /* TODO: Final Testing */
 {
 	static int key_x=0;    // Maybe this is of use to you... - otherwise just delete it
 	SDL_Event keyevent;    
@@ -286,13 +286,17 @@ int key_control()
 	SDL_PollEvent(&keyevent);
 	if(keyevent.type==SDL_KEYDOWN) {
         switch(keyevent.key.keysym.sym){
-           case SDLK_LEFT: /* TODO: Do something */
+           case SDLK_LEFT:
         	   key_x=-1;
         	   break;
 
-           case SDLK_RIGHT: /* TODO: Do something */ break;
-               key_x=+1;
-           case SDLK_ESCAPE: return 0; break;
+           case SDLK_RIGHT:
+        	   key_x=+1;
+        	   break;
+
+           case SDLK_ESCAPE:
+        	   return 0;
+        	   break;
 
            default: break;
 		}
@@ -302,12 +306,12 @@ int key_control()
 
 		switch(keyevent.key.keysym.sym){
 
-		case SDLK_LEFT: /* TODO: Do something */
-			key_x=0;
+		case SDLK_LEFT:
+			key_x=5;
 			break;
 
-		case SDLK_RIGHT: /* TODO: Do something */
-			key_x=0;
+		case SDLK_RIGHT:
+			key_x=5;
 			break;
 
 			default: break;
