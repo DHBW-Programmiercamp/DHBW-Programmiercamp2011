@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <math.h>
 #ifdef _WIN32 // _WIN32 is defined by many compilers available for the Windows operating system, but not by others.
-#include "SDL.h"
+#include "C:\MinGW\include\SDL\SDL.h"
 #else
 #include "SDL/SDL.h"
 #endif
@@ -256,7 +256,7 @@ void paint_all(game_state_type *g, player_data_type *pl)
 			draw_tile(x, y, 4+(x/Size_tile%3));
 
 	// TODO: draw competences, some stupid examples
-	draw_competence(100, 100, 3); 
+	draw_competence(100, 100, 3);
 	draw_competence(400, Win_floor_y, 1); 
 	draw_competence(400, 300, 4); 
 
@@ -342,7 +342,9 @@ int main(int argc, char *argv[])
     // TODO optional: show_splash_screen, select player, ...
     
     // The main control loop 
-    while(key_control()) {
+    // Wenn kein Autocontrol:
+    key_x = key_control();
+    while(key_x) {
     	
     	init_next_element(&game, &player);
 		// TODO: Next level?
@@ -355,10 +357,12 @@ int main(int argc, char *argv[])
 		
 		// TODO: Check keyboard input for manual player
 		// TODO: How to abort the game?
-		key_x=auto_control(&game, &player); // use only for 'robot player'
+		//key_x=auto_control(&game, &player); // use only for 'robot player'
 
 		player.x+=key_x*Player_v_x;    // Calculate new x-position
 		// TODO: Check for screen borders / keep your distance from the teacher...
+
+
 				    	
 		paint_all(&game, &player);  // Update graphics
         
