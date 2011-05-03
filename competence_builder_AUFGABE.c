@@ -213,10 +213,17 @@ void draw_tile(int x, int y, int number)
 {
 	SDL_Rect src, dest;
 
+	//Set sizes
 	src.w = dest.w = Size_tile;
 	src.h = dest.h = Size_tile;
-	src.x=number*Size_tile; src.y=0;
-	dest.x=x;	dest.y=y;
+	dest.x = x;
+	dest.y = y;
+
+	//
+	src.x = number*Size_tile;
+	src.y = 0;
+
+
 	SDL_BlitSurface(graphics, &src, screen, &dest);
 }
 
@@ -247,6 +254,7 @@ void draw_digit(int x, int y, int number, char size)
 /*******************************************************************
  * Refresh the screen and draw all graphics                        *
  *******************************************************************/
+#define RES_BG_X 480
 void paint_all(game_state_type *g, player_data_type *pl)
 {
     int x, y;
@@ -255,9 +263,9 @@ void paint_all(game_state_type *g, player_data_type *pl)
     draw_rect(0,Win_floor_y,Win_width, Win_height-Win_floor_y,  30,30,50);
 
 	// TODO: draw correct background graphics, e.g. with tables and floor
-	for(y=0; y<Win_floor_y; y+=Size_tile)
-		for(x=0; x<Win_width/2; x+=Size_tile)
-			draw_tile(x, y, 4+(x/Size_tile%3));
+	for(y = 0; y < Win_floor_y; y += Size_tile)
+		for(x = 0; x < Win_width; x += Size_tile)
+			draw_tile(x, y, 5);
 
 	// TODO: draw competences, some stupid examples
 	draw_competence(100, 100, 3);
