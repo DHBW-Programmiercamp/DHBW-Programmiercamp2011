@@ -648,7 +648,9 @@ int auto_control(game_state_type *g, player_data_type *pl)
 		int i,j;
 		for(i=9; i>0; i--)//unterste Reihe auslassen
 			for(j=9; j>=0;j--)//ganz linke Spalte auslassen
-				if(g->comps[i][j]==-1 && g->comps[i-1][j+1]!=nextcomp && g->comps[i-1][j]!=nextcomp && nextx==0 && g->comps[i-1][j]!=-1 && g->comps[i-1][j+1]!=-1)
+				//if(g->comps[i][j]==-1)&& g->comps[i-1][j+1]!=nextcomp && g->comps[i-1][j]!=nextcomp && nextx==0 && g->comps[i-1][j]!=-1 && g->comps[i-1][j+1]!=-1)
+				if(g->comps[i][j]==-1&& g->comps[i-1][j+1]!=nextcomp && g->comps[i-1][j]!=nextcomp && nextx==-1 && g->comps[i-1][j]!=-1 && g->comps[i-1][j+1]!=-1)
+
 				{
 					nextx=j;
 					nexty=i;
