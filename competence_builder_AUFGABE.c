@@ -18,9 +18,14 @@
 #define TILE_FLOOR 6
 #define TILE_TABLE 4
 #define MIN_PLAYER_X  2*Size_tile
+//Set player 20px above REAL floor
+#define CHARACTER_FLOOR Win_floor_y
 
 // Graphics data - SDL variables
 SDL_Surface *graphics, *screen;  // Graphics data, screen data
+
+// Wenn die Autimatik l�uft
+const int Auto_control=0;
 
 // Definition of sizes of Graphic elements, according to graphics in competence_builder.bmp
 const int Size_comp=50;                       // Size (x==y) of competence element
@@ -89,7 +94,7 @@ int load_game_data(game_state_type *g, char *filename)
     		fscanf(file,"%d",&g->levels);		// Lese aus File erste Zahl: Level Anzahl
     		fscanf(file,"%d %d",&g->cur_max, &g->element_pause);		// Lese aus File Anzahl Blöcke, Wartezeit für Block
 
-    		g->curriculum = malloc(sizeof(char) * g->cur_max);  //Seicher für Array curriculum allokieren
+    		g->curriculum = (char *)malloc(sizeof(char) * g->cur_max);  //Seicher für Array curriculum allokieren
 
     		fscanf(file,"\r");		// Lese aus File: Zeilenumbruch
 
@@ -109,7 +114,7 @@ void init_level(game_state_type *g, player_data_type *p )
 	g->cur_act=0;
 	// Init player position
 	p->x=Win_width/3.f;
-	p->y=(float)Win_floor_y;
+	p->y=(float)CHARACTER_FLOOR;
 }
 
 /***************************************************************************
@@ -137,7 +142,6 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 		el->comp = g->curriculum[g->cur_act];
 		g->element[g->cur_act]=*el;
 		free(el);
-		g->element[g->cur_act]=*el;
 		g->cur_act++;
 	}
 	return;
@@ -301,10 +305,11 @@ void draw_digit(int x, int y, int number, char size)
 /*******************************************************************
  * Refresh the screen and draw all graphics                        *
  *******************************************************************/
-#define RES_BG_X 480
 void paint_all(game_state_type *g, player_data_type *pl)
 {
-    int x, y;
+    int x, y, i;
+    if(!g)
+    	return;
 	
     //Draw color background
     draw_rect(0,Win_floor_y,Win_width, Win_height-Win_floor_y,  30,30,50);
@@ -325,16 +330,21 @@ void paint_all(game_state_type *g, player_data_type *pl)
 
 
 	// TODO: draw competences, some stupid examples
-	draw_competence(100, 100, 3);
-	draw_competence(400, Win_floor_y, 1); 
-	draw_competence(400, 300, 4); 
+	//draw_competence(100, 100, 3);
+	//draw_competence(400, Win_floor_y, 1);
+	//draw_competence(400, 300, 4);
 
 	// Draw player (better do not change the x,y coordinates)
-	draw_tile((int)pl->x-Size_tile/2, (Win_floor_y-1)/Size_tile*Size_tile, 0 /* TODO: Animate player when walking 0<->1 */);
+	draw_tile((int)pl->x, CHARACTER_FLOOR, 0 /* TODO: Animate player when walking 0<->1 */);
 
 	// Draw teacher 
 	// TODO (optional): Animate/move the teacher in interesting ways...
-	draw_tile(200, (Win_floor_y-1)/Size_tile*Size_tile, 3 );
+	// TODO: Dynamic position, if jumping
+	draw_tile(50, CHARACTER_FLOOR, 3 );
+
+	// Draw elements
+	for(i = 0; i < g->cur_act; i++)
+		draw_tile(g->element[i].x, g->element[i].y, g->element[i].comp);
 
 	// TODO (optional): Draw list of remaining competences in curriculum
 	
@@ -351,15 +361,17 @@ int key_control(int *key_x) /* TODO: Final Testing */
 {
 	SDL_Event keyevent;
 
+	// Verbesserung von Timo: immer +1 / -1, so k�nnen auch kurzzeitig rechts und links gleichzeitig gedr�ckt werden und es ist trotzdem intuitiv
+
 	SDL_PollEvent(&keyevent);
 	if(keyevent.type==SDL_KEYDOWN) {
         switch(keyevent.key.keysym.sym){
            case SDLK_LEFT:
-        	   *key_x=-1;
+        	   *key_x+=-1;
         	   break;
 
            case SDLK_RIGHT:
-        	   *key_x=1;
+        	   *key_x+=1;
         	   break;
 
            case SDLK_ESCAPE:
@@ -375,11 +387,11 @@ int key_control(int *key_x) /* TODO: Final Testing */
 		switch(keyevent.key.keysym.sym){
 
 		case SDLK_LEFT:
-			*key_x=0;
+			*key_x+=1;
 			break;
 
 		case SDLK_RIGHT:
-			*key_x=0;
+			*key_x+=-1;
 			break;
 
 			default: break;
@@ -428,8 +440,9 @@ int main(int argc, char *argv[])
     // TODO optional: show_splash_screen, select player, ...
     
     // The main control loop 
-    // Wenn kein Autocontrol:
+    // key_x initialisieren
     key_x = 0;
+    // Abbrechen, wenn key_control 0 zur�ckgibt.
 	while(key_control(&key_x)) {
 
 		//Draw first
@@ -441,16 +454,26 @@ int main(int argc, char *argv[])
 
 		// move_elements is called ten times before the graphics are updated
 		// Thus, a better simulation precision is achieved
-		// witout spending too much performance on (slow) graphics output
+		// without spending too much performance on (slow) graphics output
 		for(i=0; i<10; i++)
 			move_elements(&game);
 
-		// TODO: Check keyboard input for manual player
-		// TODO: How to abort the game?
-		//key_x=auto_control(&game, &player); // use only for 'robot player'
-		player.x+=key_x*Player_v_x;    // Calculate new x-position
+		// Wenn die Automatik l�uft sich dieser auch bedienen
+		if (Auto_control) {
+			key_x = 0;
+			key_x=auto_control(&game, &player); // use only for 'robot player'
+		}
 
-		// TODO: Check for screen borders / keep your distance from the teacher...
+		/* Nur bewegen, wenn
+		 * - der Player innerhalb der Bewegungsreichweite ist
+		 * - der Player rechts au�erhalb der Bewegungsreichweite ist und sich nach links bewegen m�chte
+		 * - der Player links au�erhalb der Bewegungsreichweite ist und sich nach rechts bewegen m�chte
+		 */
+		if ((player.x + Size_tile <= Win_width && player.x >= MIN_PLAYER_X) || (player.x + Size_tile > Win_width && key_x < 0) || (player.x < MIN_PLAYER_X && key_x > 0)) {
+			player.x+=key_x*Player_v_x;    // Calculate new x-position
+		}
+
+		paint_all(&game, &player);  // Update graphics
 
 		SDL_Delay(20); // wait 20 ms
 	}
