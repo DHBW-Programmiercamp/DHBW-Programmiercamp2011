@@ -288,6 +288,7 @@ int init_SDL()
         printf("Unable to init video: %s\n", SDL_GetError()); exit(1);
     }	
 	// Load graphics
+	SDL_WM_SetCaption("Flying Tux: Competence Builder", "Tux_icon.ico");
 	graphics = SDL_LoadBMP("competence_builder.bmp");
     if (graphics == NULL) {
 	    printf("Unable to load bitmap: %s\n", SDL_GetError());  exit(1);
