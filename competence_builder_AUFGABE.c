@@ -536,6 +536,13 @@ int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
      	   *key_c=0;
      	   break;
 
+        case 's':
+        case 'f':
+        case 'p':
+        case 'r':
+     	   *key_c=0;
+     	   break;
+
 			default: break;
 		}
 	}
