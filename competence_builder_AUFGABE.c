@@ -118,7 +118,7 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 		el->vy=-(float)sqrt(el->y * 2. * Gravity);
 		el->vx=(float)((pl->x-el->x)/(-el->vy/Gravity*2.));
 		el->comp = g->curriculum[g->cur_act];
-		g->element[g->cur_act]=el;
+		g->element[g->cur_act]=*el;
 		g->cur_act++;
 	}
 	return;
