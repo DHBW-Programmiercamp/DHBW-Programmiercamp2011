@@ -414,6 +414,10 @@ int main(int argc, char *argv[])
     // Wenn kein Autocontrol:
     key_x = 0;
 	while(key_control(&key_x)) {
+
+		//Draw first
+		paint_all(&game, &player);
+
 		init_next_element(&game, &player);
 		// TODO: Next level?
 
@@ -429,10 +433,6 @@ int main(int argc, char *argv[])
 		player.x+=key_x*Player_v_x;    // Calculate new x-position
 
 		// TODO: Check for screen borders / keep your distance from the teacher...
-
-
-
-		paint_all(&game, &player);  // Update graphics
 
 		SDL_Delay(20); // wait 20 ms
 	}
