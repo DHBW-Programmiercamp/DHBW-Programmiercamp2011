@@ -87,8 +87,9 @@ int load_game_data(game_state_type *g, char *filename)
 // Initialize next level / player
 void init_level(game_state_type *g, player_data_type *p )
 {
-	g->element=(element_type *)malloc(sizeof(element_type));   // Simple example for one element, TODO: need to change this
-
+	g->element=(element_type *)malloc(sizeof(element_type)*g->cur_max);   // Simple example for one element, TODO: need to change this COMPLETED
+	g->element_countdown = 100;
+	g->cur_act=0;
 	// Init player position
 	p->x=Win_width/3.f;
 	p->y=(float)Win_floor_y;
@@ -99,25 +100,28 @@ void init_level(game_state_type *g, player_data_type *p )
  ***************************************************************************/
 void init_next_element(game_state_type *g, player_data_type *pl)
 {
+	// TO DO: ...
+	// TO DO: Initialize a new competence element, when/before it is thrown by the teacher
+	// TO DO: Check if there are further elements or whether the level is completed
+	// TO DO: Keep in mind the correct waiting time between elements
+	// TO DO: Use the following calculation to initialize x, y, vx, vy (as explained in game rules)
+
 	element_type *el; 
-
-	return; // TODO: ...
-	
-	// TODO: Initialize a new competence element, when/before it is thrown by the teacher
-	
-	// TODO: Check if there are further elements or whether the level is completed
-	
-	// TODO: Keep in mind the correct waiting time between elements
-
-	// TODO: Use the following calculation to initialize x, y, vx, vy (as explained in game rules)
-	// The teacher throws in such direction that the competence lands at the current player position
-	// For the competition these calculations must be left unchanged! 
-	
-	el->x=(float)Element_start_x;
-	el->y=(float)Win_floor_y; 
-	el->vy=-(float)sqrt(el->y * 2. * Gravity);
-	el->vx=(float)((pl->x-el->x)/(-el->vy/Gravity*2.));
-
+	g->element_countdown--;
+	if(g->element_countdown == 0 && g->cur_act!=g->cur_max)//Soll er gerade werfen und sind noch Elemente zum Werfen da
+	{
+		g->element_countdown=100;
+		// The teacher throws in such direction that the competence lands at the current player position
+		// For the competition these calculations must be left unchanged!
+		el->x=(float)Element_start_x;
+		el->y=(float)Win_floor_y;
+		el->vy=-(float)sqrt(el->y * 2. * Gravity);
+		el->vx=(float)((pl->x-el->x)/(-el->vy/Gravity*2.));
+		el->comp = g->curriculum[g->cur_act];
+		g->element[g->cur_act]=*el;
+		g->cur_act++;
+	}
+	return;
 	// Just in case, some notes regarding the physics - you don't need to understand that
     // h max = v2 / (2g)       v=sqrt(h max * 2 * g)
 	// R = v^2 / g * sin (2 beta)
@@ -278,7 +282,7 @@ void paint_all(game_state_type *g, player_data_type *pl)
 /********************************************************************
  * SDL-Function to check for keyboard events                        *
  ********************************************************************/
-int key_control()
+int key_control() /* TODO: Final Testing */
 {
 	static int key_x=0;    // Maybe this is of use to you... - otherwise just delete it
 	SDL_Event keyevent;    
@@ -286,13 +290,17 @@ int key_control()
 	SDL_PollEvent(&keyevent);
 	if(keyevent.type==SDL_KEYDOWN) {
         switch(keyevent.key.keysym.sym){
-           case SDLK_LEFT: /* TODO: Do something */
+           case SDLK_LEFT:
         	   key_x=-1;
         	   break;
 
-           case SDLK_RIGHT: /* TODO: Do something */ break;
-               key_x=+1;
-           case SDLK_ESCAPE: return 0; break;
+           case SDLK_RIGHT:
+        	   key_x=+1;
+        	   break;
+
+           case SDLK_ESCAPE:
+        	   return 0;
+        	   break;
 
            default: break;
 		}
@@ -302,12 +310,12 @@ int key_control()
 
 		switch(keyevent.key.keysym.sym){
 
-		case SDLK_LEFT: /* TODO: Do something */
-			key_x=0;
+		case SDLK_LEFT:
+			key_x=5;
 			break;
 
-		case SDLK_RIGHT: /* TODO: Do something */
-			key_x=0;
+		case SDLK_RIGHT:
+			key_x=5;
 			break;
 
 			default: break;
