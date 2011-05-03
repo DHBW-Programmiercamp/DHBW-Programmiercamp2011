@@ -154,6 +154,10 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 	// Steigzeit: v0/g
 }
 
+int explode() {
+
+}
+
 
 // TODO (optional/suggestion):
 //        Write a function that checks whether/how two competence elements are colliding
@@ -171,14 +175,28 @@ int check_collision(element_type *el1, element_type *el2)
 	// TODO: landing/contact on top?
 	// TODO: What about the case, where an element lands on two other elements?
 
+	const float buffer=20.0;
 
-	if(el1->y + Size_comp > el2->y && el1->y < el2->y + Size_comp) {
-		if(el1->x + Size_comp > el2->x && el1->x < el2->x + Size_comp) {
-			// side collision
-			el1->vx=-0.9*el1->vx;
+
+	if(el1->x + Size_comp > el2->x && el1->x + Size_comp - buffer < el2->x) {
+		if(el1->y + Size_comp > el2->y && el1->y < el2->y + Size_comp) {
+
+			el1->vx=(-0.9)*el1->vx;
+		}
+	}
+
+	else if(el1->x + Size_comp > el2->x && el1->x < el2->x + Size_comp) {
+		if(el1->y + Size_comp > el2->y && el1->y + Size_comp < el2->y + buffer) {
+
 			return 1;
 		}
-	}/*
+	}
+
+		// side collision
+		//el1->vx=-0.9*el1->vx;
+		//return 1;
+
+	/*
 	else if(el1->x + Size_comp > el1->x) {
 		if(el1->y < el2->y + Size_comp) {
 
@@ -216,6 +234,9 @@ void move_elements(game_state_type *g)
 				g->element[i].y+=g->element[i].vy;     // change position based on speed
 				g->element[i].x+=g->element[i].vx;
 			}
+		}
+		else {
+			g->element[i].points=1;
 		}
 	}
 
@@ -441,6 +462,7 @@ int main(int argc, char *argv[])
 
     load_game_data(&game, "competence_builder.txt");
     init_level(&game, &player);
+    game.element_pause=500;
         
     // TODO optional: show_splash_screen, select player, ...
     
