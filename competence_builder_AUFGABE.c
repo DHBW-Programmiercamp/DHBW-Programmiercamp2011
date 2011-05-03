@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <math.h>
 #ifdef _WIN32 // _WIN32 is defined by many compilers available for the Windows operating system, but not by others.
-#include "SDL.h"
+#include "C:\MinGW\include\SDL\SDL.h"
 #else
 #include "SDL/SDL.h"
 #endif
