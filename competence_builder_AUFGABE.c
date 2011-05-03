@@ -75,6 +75,7 @@ typedef struct {
 int load_game_data(game_state_type *g, char *filename)
 {
 	FILE *file;
+	short int cur_count=0; 	// Zähler für das Einlesen des Curriculums
 
     // Open the file for reading
     file=fopen(filename,"r"); 
@@ -85,6 +86,17 @@ int load_game_data(game_state_type *g, char *filename)
     
     // TODO: Read level data, allocate memory if needed
     
+    		fscanf(file,"%d",&g->levels);		// Lese aus File erste Zahl: Level Anzahl
+    		fscanf(file,"%d %d",&g->cur_max, &g->element_pause);		// Lese aus File Anzahl Blöcke, Wartezeit für Block
+
+    		g->curriculum = malloc(sizeof(char) * g->cur_max);  //Seicher für Array curriculum allokieren
+
+    		fscanf(file,"\r");		// Lese aus File: Zeilenumbruch
+
+    		for(cur_count=0;cur_count<(g->cur_max);cur_count++) { 		//Schleife um alle Blöcke  nacheinander auszulesen
+    			fscanf(file,"%c ",&(g->curriculum[cur_count]) );		// Lese aus File Blöcke...
+    		}
+
     fclose(file);    // close file
     return 0;
 }
