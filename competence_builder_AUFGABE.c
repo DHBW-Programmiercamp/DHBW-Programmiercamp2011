@@ -47,8 +47,9 @@ const float Gravity=0.03f;                   // Gravity
 typedef struct {
    float x, y;            // Position
    float vx, vy;          // Speed
-   char comp;             // Type of competence 0 - 3,  crash=4
+   char comp;             // Type of competence 0 - 3,  crash=4, deleted 5
    unsigned short int  points;	  //Points per elemnt
+   unsigned short int  countdown;	  //counts down to 0 if a block explodes -> explode vanish
    // TODO: Extend if needed
 } element_type;
 
@@ -157,11 +158,12 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 	// Steigzeit: v0/g
 }
 
-int explode(element_type *el) {
-	el->x=-500;
-	return 0;
+void explode(element_type *el) {
+	el->comp = 4;
+	el->vx=0;
+	el->vy=0;
+	el->countdown=10;
 }
-
 
 // TODO (optional/suggestion):
 //        Write a function that checks whether/how two competence elements are colliding
@@ -220,7 +222,20 @@ void move_elements(game_state_type *g)
 	int i,j,coll;
 
 	for(i=0;i<g->cur_act;i++) {
-		if(g->element[i].y<=Win_floor_y) { // Competence hits floor -> stop moving
+		if(g->element[i].comp==4)
+		{
+			if(g->element[i].countdown!=0)
+			{
+				g->element[i].countdown--;
+			}
+			else
+			{
+				g->element[i].x = Win_width - Size_comp;
+				g->element[i].y = Win_height - Size_comp;
+				g->element[i].comp = 5;
+			}
+		}
+		else if(g->element[i].y<=Win_floor_y) { // Competence hits floor -> stop moving
 			// Check for collision with other elements
 			j=-1;
 			do {
