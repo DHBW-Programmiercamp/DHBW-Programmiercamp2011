@@ -25,7 +25,7 @@ const int Size_smalldigit_x=12, Size_smalldigit_y=21;   // Size of small digits 
 
 // Basic data of Window layout and physics
 // Better not change this data -> game behaviours should be comparable in competition
-const int Win_width=1056, Win_height=760;     // screen resolution
+const int Win_width=1024, Win_height=768;     // screen resolution
 const int Win_floor_y=630;                    // Position of floor
 const int Element_start_x=100;                // Start position of element
 const float Player_v_x=8.0f;                 // Player speed
@@ -216,8 +216,8 @@ void draw_tile(int x, int y, int number)
 {
 	SDL_Rect src, dest;
 
-	src.w=dest.w=Size_tile;
-	src.h=dest.h=Size_tile;
+	src.w = dest.w = Size_tile;
+	src.h = dest.h = Size_tile;
 	src.x=number*Size_tile; src.y=0;
 	dest.x=x;	dest.y=y;
 	SDL_BlitSurface(graphics, &src, screen, &dest);
