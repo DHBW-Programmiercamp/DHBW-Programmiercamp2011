@@ -164,8 +164,6 @@ void explode(element_type *el) {
 	el->vx=0;
 	el->vy=0;
 	el->countdown=10;
-	el->x=-500;
-	el->y=-500;
 }
 
 // TODO (optional/suggestion):
@@ -196,8 +194,7 @@ int check_collision(element_type *el1, element_type *el2)
 		if(el1->y + Size_comp > el2->y && el1->y + Size_comp < el2->y + buffer) {
 			// check if element is not more than half on the element below
 			if(el1->x + Size_comp/2 < el2->x || el1->x > el2->x + Size_comp/2) {
-				explode(&el1);
-				printf("explode\n");
+				explode(el1);
 			}
 			else {
 				return 1;
@@ -205,7 +202,7 @@ int check_collision(element_type *el1, element_type *el2)
 
 		}
 		else if(el1->y < el2->y + Size_comp + buffer && el1->y > el2->y + Size_comp) {
-			explode(&el1);
+			explode(el1);
 		}
 	}
 
