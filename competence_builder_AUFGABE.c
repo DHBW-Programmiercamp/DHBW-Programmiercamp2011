@@ -130,19 +130,17 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 	g->element_countdown--;
 	if(g->element_countdown == 0 && g->cur_act!=g->cur_max)//Soll er gerade werfen und sind noch Elemente zum Werfen da
 	{
-		element_type *el;
-		el=(element_type *)malloc(sizeof(element_type));
+		element_type el;
+		//el=(element_type *)malloc(sizeof(element_type));
 		g->element_countdown = g->element_pause / 20;
 		// The teacher throws in such direction that the competence lands at the current player position
 		// For the competition these calculations must be left unchanged!
-		el->x=(float)Element_start_x;
-		el->y=(float)Win_floor_y;
-		el->vy=-(float)sqrt(el->y * 2. * Gravity);
-		el->vx=(float)((pl->x-el->x)/(-el->vy/Gravity*2.));
-		el->comp = g->curriculum[g->cur_act];
-		g->element[g->cur_act]=*el;
-		free(el);
-
+		el.x=(float)Element_start_x;
+		el.y=(float)Win_floor_y;
+		el.vy=-(float)sqrt(el.y * 2. * Gravity);
+		el.vx=(float)((pl->x-el->x)/(-el->vy/Gravity*2.));
+		el.comp = g->curriculum[g->cur_act];
+		g->element[g->cur_act]=el;
 		//g->element[g->cur_act]=*el;
 		g->cur_act++;
 	}
