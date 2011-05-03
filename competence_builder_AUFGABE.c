@@ -92,7 +92,7 @@ int load_game_data(game_state_type *g, char *filename)
     		fscanf(file,"%d",&g->levels);		// Lese aus File erste Zahl: Level Anzahl
     		fscanf(file,"%d %d",&g->cur_max, &g->element_pause);		// Lese aus File Anzahl Blöcke, Wartezeit für Block
 
-    		g->curriculum = malloc(sizeof(char) * g->cur_max);  //Seicher für Array curriculum allokieren
+    		g->curriculum = (char *)malloc(sizeof(char) * g->cur_max);  //Seicher für Array curriculum allokieren
 
     		fscanf(file,"\r");		// Lese aus File: Zeilenumbruch
 
