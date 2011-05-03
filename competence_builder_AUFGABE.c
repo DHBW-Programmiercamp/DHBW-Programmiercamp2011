@@ -158,6 +158,27 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 	// Steigzeit: v0/g
 }
 
+int needed_position(game_state_type *g, player_data_type *pl, int x, int y)//calculates position of the student to place an object perfectly
+{
+	float studentabstand = (x-Element_start_x)/100;
+	float ebene = pow(2,floor(Win_floor_y-y/Size_comp));
+	/*
+	int foundfirst=0;
+	float tempx, tempy;
+	float tempvx, tempvy;
+	tempx=(float)Element_start_x;
+	tempy=(float)Win_floor_y;
+	tempvx=-(float)sqrt(tempy * 2. * Gravity);
+	tempvy=(float)((tempx-tempx)/(-tempvy/Gravity*2.));//nur vor dem Abwurf erlaubt
+	float precision = 5.0;
+	while (x<tempx+precision && x>tempx-precision && y<tempy+precision && y>tempy+precision)
+	{
+		tempvy+=Gravity;   // Gravity affects vy
+		tempy+=tempvy;     // change position based on speed
+		tempx+=tempvx;
+	}*/
+}
+
 int explode(element_type *el) {
 	el->comp = 4;
 	el->vx=0;
@@ -503,6 +524,7 @@ int auto_control(game_state_type *g, player_data_type *pl)
 	
 	// The following is a very stupid student example implementation
 	// Can you do better?
+
 	static int move_state=0;
 	
 	move_state=(move_state+1)%50; 
