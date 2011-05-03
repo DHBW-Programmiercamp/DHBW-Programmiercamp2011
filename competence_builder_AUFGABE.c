@@ -18,6 +18,8 @@
 #define TILE_FLOOR 6
 #define TILE_TABLE 4
 #define MIN_PLAYER_X  2*Size_tile
+//Set player 20px above REAL floor
+#define CHARACTER_FLOOR Win_floor_y
 
 // Graphics data - SDL variables
 SDL_Surface *graphics, *screen;  // Graphics data, screen data
@@ -110,11 +112,11 @@ int load_game_data(game_state_type *g, char *filename)
 void init_level(game_state_type *g, player_data_type *p )
 {
 	g->element=(element_type *)malloc(sizeof(element_type)*g->cur_max);   // Simple example for one element, TODO: need to change this COMPLETED
-	g->element_countdown = g->element_pause / 20;
+	g->element_countdown = g->element_pause / 20; //1200ms /20ms (20ms braucht ca. ein programmdurchlauf)
 	g->cur_act=0;
 	// Init player position
 	p->x=Win_width/3.f;
-	p->y=(float)Win_floor_y;
+	p->y=(float)CHARACTER_FLOOR;
 }
 
 /***************************************************************************
@@ -130,19 +132,18 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 	g->element_countdown--;
 	if(g->element_countdown == 0 && g->cur_act!=g->cur_max)//Soll er gerade werfen und sind noch Elemente zum Werfen da
 	{
-		element_type *el;
-		el=(element_type *)malloc(sizeof(element_type));
+		element_type el;
+		//el=(element_type *)malloc(sizeof(element_type));
 		g->element_countdown = g->element_pause / 20;
 		// The teacher throws in such direction that the competence lands at the current player position
 		// For the competition these calculations must be left unchanged!
-		el->x=(float)Element_start_x;
-		el->y=(float)Win_floor_y;
-		el->vy=-(float)sqrt(el->y * 2. * Gravity);
-		el->vx=(float)((pl->x-el->x)/(-el->vy/Gravity*2.));
-		el->comp = g->curriculum[g->cur_act];
-		g->element[g->cur_act]=*el;
-		free(el);
-		g->element[g->cur_act]=*el;
+		el.x=(float)Element_start_x;
+		el.y=(float)Win_floor_y;
+		el.vy=-(float)sqrt(el.y * 2. * Gravity);
+		el.vx=(float)((pl->x-el->x)/(-el->vy/Gravity*2.));
+		el.comp = g->curriculum[g->cur_act];
+		g->element[g->cur_act]=el;
+		//g->element[g->cur_act]=*el;
 		g->cur_act++;
 	}
 	return;
@@ -306,10 +307,11 @@ void draw_digit(int x, int y, int number, char size)
 /*******************************************************************
  * Refresh the screen and draw all graphics                        *
  *******************************************************************/
-#define RES_BG_X 480
-void paint_all(game_state_type *g, player_data_type *pl)
+void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 {
-    int x, y;
+    int x, y, i;
+    if(!g)
+    	return;
 	
     //Draw color background
     draw_rect(0,Win_floor_y,Win_width, Win_height-Win_floor_y,  30,30,50);
@@ -330,16 +332,21 @@ void paint_all(game_state_type *g, player_data_type *pl)
 
 
 	// TODO: draw competences, some stupid examples
-	draw_competence(100, 100, 3);
-	draw_competence(400, Win_floor_y, 1); 
-	draw_competence(400, 300, 4); 
+	//draw_competence(100, 100, 3);
+	//draw_competence(400, Win_floor_y, 1);
+	//draw_competence(400, 300, 4);
 
 	// Draw player (better do not change the x,y coordinates)
-	draw_tile((int)pl->x-Size_tile/2, (Win_floor_y-1)/Size_tile*Size_tile, 0 /* TODO: Animate player when walking 0<->1 */);
+	draw_tile((int)pl->x, CHARACTER_FLOOR, (key_x == 0 ? 0 : 1));
 
 	// Draw teacher 
 	// TODO (optional): Animate/move the teacher in interesting ways...
-	draw_tile(200, (Win_floor_y-1)/Size_tile*Size_tile, 3 );
+	// TODO: Dynamic position, if jumping
+	draw_tile(50, CHARACTER_FLOOR, 3 );
+
+	// Draw elements
+	for(i = 0; i < g->cur_act; i++)
+		draw_tile(g->element[i].x, g->element[i].y, g->element[i].comp);
 
 	// TODO (optional): Draw list of remaining competences in curriculum
 	
@@ -441,7 +448,7 @@ int main(int argc, char *argv[])
 	while(key_control(&key_x)) {
 
 		//Draw first
-		paint_all(&game, &player);
+		paint_all(&game, &player, key_x);
 
 		init_next_element(&game, &player);
 		// TODO: Next level?
@@ -467,7 +474,7 @@ int main(int argc, char *argv[])
 			player.x+=key_x*Player_v_x;    // Calculate new x-position
 		}
 
-		paint_all(&game, &player);  // Update graphics
+		paint_all(&game, &player, key_x);  // Update graphics
 
 		SDL_Delay(20); // wait 20 ms
 	}
