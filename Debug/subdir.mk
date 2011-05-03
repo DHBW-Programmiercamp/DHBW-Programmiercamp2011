@@ -6,11 +6,11 @@
 C_SRCS += \
 ../competence_builder_AUFGABE.c 
 
-OBJS += \
-./competence_builder_AUFGABE.o 
-
 C_DEPS += \
 ./competence_builder_AUFGABE.d 
+
+OBJS += \
+./competence_builder_AUFGABE.o 
 
 
 # Each subdirectory must supply rules for building sources it contributes

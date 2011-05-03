@@ -13,7 +13,7 @@
 #else
 #include "SDL/SDL.h"
 #endif
-
+//Test Daniel
 // Graphics data - SDL variables
 SDL_Surface *graphics, *screen;  // Graphics data, screen data
 
