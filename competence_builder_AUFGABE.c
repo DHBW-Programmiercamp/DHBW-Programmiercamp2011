@@ -14,6 +14,11 @@
 #include "SDL/SDL.h"
 #endif
 
+#define TILE_BACKGROUND 5
+#define TILE_FLOOR 6
+#define TILE_TABLE 4
+#define MIN_PLAYER_X  2*Size_tile
+
 // Graphics data - SDL variables
 SDL_Surface *graphics, *screen;  // Graphics data, screen data
 
@@ -25,7 +30,7 @@ const int Size_smalldigit_x=12, Size_smalldigit_y=21;   // Size of small digits 
 
 // Basic data of Window layout and physics
 // Better not change this data -> game behaviours should be comparable in competition
-const int Win_width=1024, Win_height=768;     // screen resolution
+const int Win_width=1024, Win_height=760;     // screen resolution
 const int Win_floor_y=630;                    // Position of floor
 const int Element_start_x=100;                // Start position of element
 const float Player_v_x=8.0f;                 // Player speed
@@ -285,13 +290,23 @@ void paint_all(game_state_type *g, player_data_type *pl)
 {
     int x, y;
 	
-    // Draw background
+    //Draw color background
     draw_rect(0,Win_floor_y,Win_width, Win_height-Win_floor_y,  30,30,50);
 
-	// TODO: draw correct background graphics, e.g. with tables and floor
+	//Draw background
 	for(y = 0; y < Win_floor_y; y += Size_tile)
 		for(x = 0; x < Win_width; x += Size_tile)
-			draw_tile(x, y, 5);
+			draw_tile(x, y, TILE_BACKGROUND);
+
+	//Draw teachers place
+	for(x = 0; x < MIN_PLAYER_X; x += Size_tile)
+		draw_tile(x, Win_floor_y, TILE_FLOOR);
+
+	//Draw tables
+	for(; x < Win_width; x += Size_tile)
+		draw_tile(x, Win_floor_y, TILE_TABLE);
+
+
 
 	// TODO: draw competences, some stupid examples
 	draw_competence(100, 100, 3);
