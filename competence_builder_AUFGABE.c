@@ -318,7 +318,7 @@ void paint_all(game_state_type *g, player_data_type *pl)
  ********************************************************************/
 int key_control(int *key_x) /* TODO: Final Testing */
 {
-	SDL_Event keyevent;    
+	SDL_Event keyevent;
 
 	SDL_PollEvent(&keyevent);
 	if(keyevent.type==SDL_KEYDOWN) {
