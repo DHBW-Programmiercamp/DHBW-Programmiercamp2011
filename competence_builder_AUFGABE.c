@@ -149,14 +149,16 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 		g->element[g->cur_act]=el;
 		//g->element[g->cur_act]=*el;
 		g->cur_act++;
+		printf("cur_act: %d\n",g->cur_act);
 	}
-	return;
+
 	// Just in case, some notes regarding the physics - you don't need to understand that
     // h max = v2 / (2g)       v=sqrt(h max * 2 * g)
 	// R = v^2 / g * sin (2 beta)
 	// R * g = v2 * sin b * cos b
 	// Steigzeit: v0/g
 }
+
 
 int needed_position(game_state_type *g, player_data_type *pl, int x, int y)//calculates position of the student to place an object perfectly
 {
@@ -179,11 +181,11 @@ int needed_position(game_state_type *g, player_data_type *pl, int x, int y)//cal
 	}*/
 }
 
-int explode(element_type *el) {
+void explode(element_type *el) {
 	el->comp = 4;
 	el->vx=0;
 	el->vy=0;
-	el->countdown=10;
+	el->countdown=50;
 }
 
 // TODO (optional/suggestion):
@@ -205,23 +207,27 @@ int check_collision(element_type *el1, element_type *el2)
 	const float buffer=20.0;
 
 
-	if(el1->x + Size_comp > el2->x && el1->x + Size_comp - buffer < el2->x) {
-		if(el1->y + Size_comp > el2->y && el1->y < el2->y + Size_comp) {
-
-			el1->vx=(-0.9)*el1->vx;
-		}
+	if(el1->x + Size_comp > el2->x && el1->x + Size_comp - buffer < el2->x &&
+			el1->y + Size_comp > el2->y && el1->y < el2->y + Size_comp) {
+		el1->vx=(-0.9)*el1->vx;
 	}
-
 	else if(el1->x + Size_comp > el2->x && el1->x < el2->x + Size_comp) {
 		if(el1->y + Size_comp > el2->y && el1->y + Size_comp < el2->y + buffer) {
+			// check if element is not more than half on the element below
+			if(el1->x + Size_comp/2 < el2->x || el1->x > el2->x + Size_comp/2) {
+				// find another block below
 
-			return 1;
+				explode(el1);
+			}
+			else {
+				return 1;
+			}
+
+		}
+		else if(el1->y < el2->y + Size_comp + buffer && el1->y > el2->y + Size_comp) {
+			explode(el1);
 		}
 	}
-
-		// side collision
-		//el1->vx=-0.9*el1->vx;
-		//return 1;
 
 	/*
 	else if(el1->x + Size_comp > el1->x) {
@@ -239,7 +245,7 @@ int check_collision(element_type *el1, element_type *el2)
 void move_elements(game_state_type *g)
 {
 	int i,j,coll;
-
+	//printf("ping\n");
 	for(i=0;i<g->cur_act;i++) {
 		if(g->element[i].comp==4)
 		{
@@ -273,6 +279,9 @@ void move_elements(game_state_type *g)
 				g->element[i].y+=g->element[i].vy;     // change position based on speed
 				g->element[i].x+=g->element[i].vx;
 			}
+		}
+		else if(g->element[i].x<MIN_PLAYER_X) {
+			explode(&g->element[i]);
 		}
 		else {
 			g->element[i].points=1;
@@ -467,7 +476,7 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 /********************************************************************
  * SDL-Function to check for keyboard events                        *
  ********************************************************************/
-int key_control(int *key_x) /* TODO: Final Testing */
+int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
 {
 	SDL_Event keyevent;
 
@@ -482,6 +491,22 @@ int key_control(int *key_x) /* TODO: Final Testing */
 
            case SDLK_RIGHT:
         	   (*key_x)++;
+        	   break;
+
+           case 's':
+        	   *key_c=1;
+        	   break;
+
+           case 'f':
+        	   *key_c=2;
+        	   break;
+
+           case 'p':
+        	   *key_c=3;
+        	   break;
+
+           case 'r':
+        	   *key_c=4;
         	   break;
 
            case SDLK_ESCAPE:
@@ -503,6 +528,13 @@ int key_control(int *key_x) /* TODO: Final Testing */
 		case SDLK_RIGHT:
 			(*key_x)--;
 			break;
+
+        case 's':
+        case 'f':
+        case 'p':
+        case 'r':
+     	   *key_c=0;
+     	   break;
 
 			default: break;
 		}
@@ -539,9 +571,11 @@ int main(int argc, char *argv[])
 	// Major game variables: Player + game state
 	player_data_type player;
 	game_state_type game;
+	char pause=0;
+	int delay=20;
 
 	// some other variables
-	int i, key_x;
+	int i, key_x, key_c;
 	
 	init_SDL();
 
@@ -554,41 +588,56 @@ int main(int argc, char *argv[])
     // The main control loop 
     // key_x initialisieren
     key_x = 0;
+    key_c = 0;
     // Abbrechen, wenn key_control 0 zur�ckgibt.
-	while(key_control(&key_x)) {
-
-		//Draw first
-		paint_all(&game, &player, key_x);
-
-		init_next_element(&game, &player);
-		// TODO: Next level?
-		//printf("%d %d\n",game.cur_act,game.element[game.cur_act-1].comp);
-
-		// move_elements is called ten times before the graphics are updated
-		// Thus, a better simulation precision is achieved
-		// without spending too much performance on (slow) graphics output
-		for(i=0; i<10; i++)
-			move_elements(&game);
-
-		// Wenn die Automatik l�uft sich dieser auch bedienen
-		// Wenn die Automatik l�uft sich dieser auch bedienen
-		if (Auto_control) {
-			key_x = 0;
-			key_x=auto_control(&game, &player); // use only for 'robot player'
+	while(key_control(&key_x,&key_c)) {
+		if(key_c==1) {
+			delay+=10;
 		}
-
-		/* Nur bewegen, wenn
-		 * - der Player innerhalb der Bewegungsreichweite ist
-		 * - der Player rechts au�erhalb der Bewegungsreichweite ist und sich nach links bewegen m�chte
-		 * - der Player links au�erhalb der Bewegungsreichweite ist und sich nach rechts bewegen m�chte
-		 */
-		if ((player.x + Size_tile <= Win_width && player.x >= MIN_PLAYER_X) || (player.x + Size_tile > Win_width && key_x < 0) || (player.x < MIN_PLAYER_X && key_x > 0)) {
-			player.x+=key_x*Player_v_x;    // Calculate new x-position
+		else if(key_c==2) {
+			delay-=10;
+			if(delay<=20) delay=20;
 		}
+		else if(key_c==3) {
+			pause=1;
+		}
+		else if(key_c==4) {
+			pause=0;
+		}
+		if(pause==0) {
+			//Draw first
+			paint_all(&game, &player, key_x);
 
-		paint_all(&game, &player, key_x);  // Update graphics
+			init_next_element(&game, &player);
+			// TODO: Next level?
+			//printf("%d %d\n",game.cur_act,game.element[game.cur_act-1].comp);
 
-		SDL_Delay(20); // wait 20 ms
+			// move_elements is called ten times before the graphics are updated
+			// Thus, a better simulation precision is achieved
+			// without spending too much performance on (slow) graphics output
+			for(i=0; i<10; i++)
+				move_elements(&game);
+
+			// Wenn die Automatik l�uft sich dieser auch bedienen
+			// Wenn die Automatik l�uft sich dieser auch bedienen
+			if (Auto_control) {
+				key_x = 0;
+				key_x=auto_control(&game, &player); // use only for 'robot player'
+			}
+
+			/* Nur bewegen, wenn
+			 * - der Player innerhalb der Bewegungsreichweite ist
+			 * - der Player rechts au�erhalb der Bewegungsreichweite ist und sich nach links bewegen m�chte
+			 * - der Player links au�erhalb der Bewegungsreichweite ist und sich nach rechts bewegen m�chte
+			 */
+			if ((player.x + Size_tile <= Win_width && player.x >= MIN_PLAYER_X) || (player.x + Size_tile > Win_width && key_x < 0) || (player.x < MIN_PLAYER_X && key_x > 0)) {
+				player.x+=key_x*Player_v_x;    // Calculate new x-position
+			}
+
+			paint_all(&game, &player, key_x);  // Update graphics
+
+			SDL_Delay(delay); // wait 20 ms
+		}
 	}
 
     free(game.curriculum);
