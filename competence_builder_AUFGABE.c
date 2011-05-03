@@ -157,8 +157,9 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 	// Steigzeit: v0/g
 }
 
-int explode() {
-
+int explode(element_type *el) {
+	el->x=-500;
+	return 0;
 }
 
 
@@ -190,8 +191,10 @@ int check_collision(element_type *el1, element_type *el2)
 
 	else if(el1->x + Size_comp > el2->x && el1->x < el2->x + Size_comp) {
 		if(el1->y + Size_comp > el2->y && el1->y + Size_comp < el2->y + buffer) {
-
 			return 1;
+		}
+		else if(el1->y < el2->y + Size_comp + buffer && el1->y > el2->y + Size_comp) {
+			explode(&el1);
 		}
 	}
 
@@ -217,7 +220,6 @@ void move_elements(game_state_type *g)
 	int i,j,coll;
 
 	for(i=0;i<g->cur_act;i++) {
-
 		if(g->element[i].y<=Win_floor_y) { // Competence hits floor -> stop moving
 			// Check for collision with other elements
 			j=-1;
@@ -237,6 +239,9 @@ void move_elements(game_state_type *g)
 				g->element[i].y+=g->element[i].vy;     // change position based on speed
 				g->element[i].x+=g->element[i].vx;
 			}
+		}
+		else if(g->element[i].x<MIN_PLAYER_X) {
+			explode(&g->element[i]);
 		}
 		else {
 			g->element[i].points=1;
@@ -510,7 +515,7 @@ int main(int argc, char *argv[])
 
     load_game_data(&game, "competence_builder.txt");
     init_level(&game, &player);
-    game.element_pause=500;
+    game.element_pause=400;
         
     // TODO optional: show_splash_screen, select player, ...
     
