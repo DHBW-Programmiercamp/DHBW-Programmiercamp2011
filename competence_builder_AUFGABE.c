@@ -175,7 +175,7 @@ void move_elements(game_state_type *g)
 			j=-1;
 			do {
 				j++;
-				coll = check_collision(el,g->element[j]);
+				coll = check_collision(el,&g->element[j]);
 			} while(j<g->cur_max && coll==0);
 			if(coll==0) {
 				// Normal motion based on current speed and gravity.
