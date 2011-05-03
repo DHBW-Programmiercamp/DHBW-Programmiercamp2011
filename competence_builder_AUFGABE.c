@@ -195,9 +195,9 @@ void move_elements(game_state_type *g)
 	element_type *el;    // Pointer to some competence element
 	
 	for(i=0;i<g->cur_act;i++) {
-		el=&g->element[0];    // Take first element
-
-		if(el->y<Win_floor_y) { // Competence hits floor -> stop moving
+		el=&g->element[i];    // Take first element
+		printf("%d\n",el->y);
+		if(el->y>=Win_floor_y) { // Competence hits floor -> stop moving
 
 			// Check for collision with other elements
 			j=-1;
@@ -344,7 +344,7 @@ void paint_all(game_state_type *g, player_data_type *pl)
 
 	// Draw elements
 	for(i = 0; i < g->cur_act; i++)
-		draw_tile(g->element[i].x, g->element[i].y, g->element[i].comp);
+		draw_competence(g->element[i].x, g->element[i].y, g->element[i].comp-48);
 
 	// TODO (optional): Draw list of remaining competences in curriculum
 	
@@ -361,7 +361,7 @@ int key_control(int *key_x) /* TODO: Final Testing */
 {
 	SDL_Event keyevent;
 
-	// Verbesserung von Timo: immer +1 / -1, so können auch kurzzeitig rechts und links gleichzeitig gedrückt werden und es ist trotzdem intuitiv
+	// Verbesserung von Timo: immer +1 / -1, so kï¿½nnen auch kurzzeitig rechts und links gleichzeitig gedrï¿½ckt werden und es ist trotzdem intuitiv
 
 	SDL_PollEvent(&keyevent);
 	if(keyevent.type==SDL_KEYDOWN) {
@@ -450,7 +450,7 @@ int main(int argc, char *argv[])
 
 		init_next_element(&game, &player);
 		// TODO: Next level?
-		printf("%d\n",game.cur_act);
+		//printf("%d %d\n",game.cur_act,game.element[game.cur_act-1].comp);
 
 		// move_elements is called ten times before the graphics are updated
 		// Thus, a better simulation precision is achieved
