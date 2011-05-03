@@ -48,6 +48,7 @@ typedef struct {
    float x, y;            // Position
    float vx, vy;          // Speed
    char comp;             // Type of competence 0 - 3,  crash=4
+   unsigned short int  points;	  //
    // TODO: Extend if needed
 } element_type;
 
@@ -100,6 +101,7 @@ int load_game_data(game_state_type *g, char *filename)
 
     		for(cur_count=0;cur_count<(g->cur_max);cur_count++) { 		//Schleife um alle Blöcke  nacheinander auszulesen
     			fscanf(file,"%c ",&(g->curriculum[cur_count]) );		// Lese aus File Blöcke...
+    			g->curriculum[cur_count] = g->curriculum[cur_count] - 48; // ASCII Konvertieren
     		}
 
     fclose(file);    // close file
@@ -110,7 +112,7 @@ int load_game_data(game_state_type *g, char *filename)
 void init_level(game_state_type *g, player_data_type *p )
 {
 	g->element=(element_type *)malloc(sizeof(element_type)*g->cur_max);   // Simple example for one element, TODO: need to change this COMPLETED
-	g->element_countdown = g->element_pause / 20;
+	g->element_countdown = g->element_pause / 20; //1200ms /20ms (20ms braucht ca. ein programmdurchlauf)
 	g->cur_act=0;
 	// Init player position
 	p->x=Win_width/3.f;
@@ -130,18 +132,18 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 	g->element_countdown--;
 	if(g->element_countdown == 0 && g->cur_act!=g->cur_max)//Soll er gerade werfen und sind noch Elemente zum Werfen da
 	{
-		element_type *el;
-		el=(element_type *)malloc(sizeof(element_type));
+		element_type el;
+		//el=(element_type *)malloc(sizeof(element_type));
 		g->element_countdown = g->element_pause / 20;
 		// The teacher throws in such direction that the competence lands at the current player position
 		// For the competition these calculations must be left unchanged!
-		el->x=(float)Element_start_x;
-		el->y=(float)Win_floor_y;
-		el->vy=-(float)sqrt(el->y * 2. * Gravity);
-		el->vx=(float)((pl->x-el->x)/(-el->vy/Gravity*2.));
-		el->comp = g->curriculum[g->cur_act];
-		g->element[g->cur_act]=*el;
-		free(el);
+		el.x=(float)Element_start_x;
+		el.y=(float)Win_floor_y;
+		el.vy=-(float)sqrt(el.y * 2. * Gravity);
+		el.vx=(float)((pl->x-el.x)/(-el.vy/Gravity*2.));
+		el.comp = g->curriculum[g->cur_act];
+		g->element[g->cur_act]=el;
+		//g->element[g->cur_act]=*el;
 		g->cur_act++;
 	}
 	return;
@@ -305,7 +307,7 @@ void draw_digit(int x, int y, int number, char size)
 /*******************************************************************
  * Refresh the screen and draw all graphics                        *
  *******************************************************************/
-void paint_all(game_state_type *g, player_data_type *pl)
+void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 {
     int x, y, i;
     if(!g)
@@ -335,7 +337,7 @@ void paint_all(game_state_type *g, player_data_type *pl)
 	//draw_competence(400, 300, 4);
 
 	// Draw player (better do not change the x,y coordinates)
-	draw_tile((int)pl->x, CHARACTER_FLOOR, 0 /* TODO: Animate player when walking 0<->1 */);
+	draw_tile((int)pl->x, CHARACTER_FLOOR, (key_x == 0 ? 0 : 1));
 
 	// Draw teacher 
 	// TODO (optional): Animate/move the teacher in interesting ways...
@@ -446,7 +448,7 @@ int main(int argc, char *argv[])
 	while(key_control(&key_x)) {
 
 		//Draw first
-		paint_all(&game, &player);
+		paint_all(&game, &player, key_x);
 
 		init_next_element(&game, &player);
 		// TODO: Next level?
@@ -473,10 +475,11 @@ int main(int argc, char *argv[])
 			player.x+=key_x*Player_v_x;    // Calculate new x-position
 		}
 
-		paint_all(&game, &player);  // Update graphics
+		paint_all(&game, &player, key_x);  // Update graphics
 
 		SDL_Delay(20); // wait 20 ms
 	}
-    
+
+    free(game.curriculum);
 	return 0;
 }
