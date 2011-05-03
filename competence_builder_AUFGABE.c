@@ -88,7 +88,7 @@ int load_game_data(game_state_type *g, char *filename)
 void init_level(game_state_type *g, player_data_type *p )
 {
 	g->element=(element_type *)malloc(sizeof(element_type)*g->cur_max);   // Simple example for one element, TODO: need to change this COMPLETED
-	g->element_countdown = 100;
+	g->element_countdown = g->element_pause / 20;
 	g->cur_act=0;
 	// Init player position
 	p->x=Win_width/3.f;
@@ -107,10 +107,11 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 	// TO DO: Use the following calculation to initialize x, y, vx, vy (as explained in game rules)
 
 	element_type *el; 
+	el=(element_type *)malloc(sizeof(element_type));
 	g->element_countdown--;
 	if(g->element_countdown == 0 && g->cur_act!=g->cur_max)//Soll er gerade werfen und sind noch Elemente zum Werfen da
 	{
-		g->element_countdown=100;
+		g->element_countdown = g->element_pause / 20;
 		// The teacher throws in such direction that the competence lands at the current player position
 		// For the competition these calculations must be left unchanged!
 		el->x=(float)Element_start_x;
@@ -118,6 +119,8 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 		el->vy=-(float)sqrt(el->y * 2. * Gravity);
 		el->vx=(float)((pl->x-el->x)/(-el->vy/Gravity*2.));
 		el->comp = g->curriculum[g->cur_act];
+		g->element[g->cur_act]=*el;
+		free(el);
 		g->element[g->cur_act]=*el;
 		g->cur_act++;
 	}
