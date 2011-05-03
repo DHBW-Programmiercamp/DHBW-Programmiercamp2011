@@ -398,6 +398,7 @@ int main(int argc, char *argv[])
     
     // The main control loop 
     // Wenn kein Autocontrol:
+    key_x = 0;
 	while(key_control(&key_x)) {
 		init_next_element(&game, &player);
 		// TODO: Next level?
