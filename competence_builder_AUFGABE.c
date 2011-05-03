@@ -76,6 +76,18 @@ typedef struct {
 
 
 /*************************************************************************************
+ * Helper
+ */
+
+int digit_count(int number)
+{
+	int i, digits;
+	digits = 1; //Always 1 ditgit
+	for(i = 10; i < number; i *= 10, digits++);
+	return digits;
+}
+
+/*************************************************************************************
  * Initialization
  */
 
@@ -116,9 +128,9 @@ void init_level(game_state_type *g, player_data_type *p )
 	g->element=(element_type *)malloc(sizeof(element_type)*g->cur_max);   // Simple example for one element, TODO: need to change this COMPLETED
 	g->element_countdown = g->element_pause / 20; //1200ms /20ms (20ms braucht ca. ein programmdurchlauf)
 	g->cur_act=0;
-	g->all_points=4096;
+	g->all_points=0;
 	// Init player position
-	p->x=Win_width/3.f;
+	p->x=Win_width-Size_tile;
 	p->y=(float)CHARACTER_FLOOR;
 
 }
@@ -146,6 +158,7 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 		el.vy=-(float)sqrt(el.y * 2. * Gravity);
 		el.vx=(float)((pl->x-el.x)/(-el.vy/Gravity*2.));
 		el.comp = g->curriculum[g->cur_act];
+		el.points = 0;
 		g->element[g->cur_act]=el;
 		//g->element[g->cur_act]=*el;
 		g->cur_act++;
@@ -410,10 +423,12 @@ void draw_blockscore(int x, int y, int number)
  *******************************************************************/
 void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 {
-    int x, y, i, sc;
     if(!g)
     	return;
 	
+    int x, y, i, c, tmpscore, num;
+    char nl;
+
     //Draw color background
     draw_rect(0,Win_floor_y,Win_width, Win_height-Win_floor_y,  30,30,50);
 
@@ -440,16 +455,48 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 
 	//Draw global score
 	//Go Numbers downwards
-	int tmpscore = g->all_points;
+	tmpscore = g->all_points;
 	for(x = 0, i = 1000; i > 0; i = floor((float)i/10), x++) {
-		int num = floor(tmpscore/i);
+		num = floor(tmpscore/i);
 		draw_globalscore(Size_digit_x*x, 0, num);
 		tmpscore -= i*num;
 	}
 
-	// Draw elements
-	for(i = 0; i < g->cur_act; i++)
-		draw_competence(g->element[i].x, g->element[i].y, g->element[i].comp);
+	// Draw elements + points
+	for(i = 0; i < g->cur_act; i++) {
+		if(g->element[i].comp != 5) { //Do not draw not existing curriculum
+			draw_competence(g->element[i].x, g->element[i].y, g->element[i].comp);
+			int digits = digit_count(g->element[i].points);
+			//Position y middle, x middle in box
+			int left_x, middle_x, middle_y, up_y;
+			middle_y = round((float)Size_smalldigit_y/2);
+			up_y = g->element[i].y + (round(Size_comp/2) - middle_y);
+			middle_x = round((digits*Size_smalldigit_x)/2);
+			left_x = g->element[i].x + (round(Size_comp/2) - middle_x);
+			nl = 0; //Did we have a valid number (so draw also 0)?
+			tmpscore = g->element[i].points;
+			//<HackyAsHell>
+			switch(digits) {
+				case 3: //>100
+					draw_blockscore(left_x, up_y, floor(tmpscore/100));
+					tmpscore -= floor(tmpscore/100)*100;
+					draw_blockscore(left_x+Size_smalldigit_x, up_y, floor(tmpscore/10));
+					tmpscore -= floor(tmpscore/10)*10;
+					draw_blockscore(left_x+2*Size_smalldigit_x, up_y, tmpscore);
+					break;
+				case 2:
+					draw_blockscore(left_x, up_y, floor(tmpscore/10));
+					tmpscore -= floor(tmpscore/10)*10;
+					draw_blockscore(left_x+Size_smalldigit_x, up_y, tmpscore);
+					break;
+				case 1:
+					draw_blockscore(left_x, up_y, tmpscore);
+					break;
+
+			}
+			//</HackyAsHell>
+		}
+	}
 
 
 
