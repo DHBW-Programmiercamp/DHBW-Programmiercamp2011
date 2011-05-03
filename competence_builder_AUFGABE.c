@@ -110,12 +110,11 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 	// TO DO: Check if there are further elements or whether the level is completed
 	// TO DO: Keep in mind the correct waiting time between elements
 	// TO DO: Use the following calculation to initialize x, y, vx, vy (as explained in game rules)
-
-	element_type *el; 
-	el=(element_type *)malloc(sizeof(element_type));
 	g->element_countdown--;
 	if(g->element_countdown == 0 && g->cur_act!=g->cur_max)//Soll er gerade werfen und sind noch Elemente zum Werfen da
 	{
+		element_type *el;
+		el=(element_type *)malloc(sizeof(element_type));
 		g->element_countdown = g->element_pause / 20;
 		// The teacher throws in such direction that the competence lands at the current player position
 		// For the competition these calculations must be left unchanged!
@@ -413,6 +412,7 @@ int main(int argc, char *argv[])
     
     // The main control loop 
     // Wenn kein Autocontrol:
+    key_x = 0;
 	while(key_control(&key_x)) {
 		init_next_element(&game, &player);
 		// TODO: Next level?
