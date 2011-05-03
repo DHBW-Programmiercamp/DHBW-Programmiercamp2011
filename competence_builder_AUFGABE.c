@@ -285,20 +285,19 @@ void paint_all(game_state_type *g, player_data_type *pl)
 /********************************************************************
  * SDL-Function to check for keyboard events                        *
  ********************************************************************/
-int key_control() /* TODO: Final Testing */
+int key_control(int *key_x) /* TODO: Final Testing */
 {
-	static int key_x=0;    // Maybe this is of use to you... - otherwise just delete it
 	SDL_Event keyevent;    
 
 	SDL_PollEvent(&keyevent);
 	if(keyevent.type==SDL_KEYDOWN) {
         switch(keyevent.key.keysym.sym){
            case SDLK_LEFT:
-        	   key_x=-1;
+        	   *key_x=-1;
         	   break;
 
            case SDLK_RIGHT:
-        	   key_x=+1;
+        	   *key_x=1;
         	   break;
 
            case SDLK_ESCAPE:
@@ -314,17 +313,17 @@ int key_control() /* TODO: Final Testing */
 		switch(keyevent.key.keysym.sym){
 
 		case SDLK_LEFT:
-			key_x=5;
+			*key_x=0;
 			break;
 
 		case SDLK_RIGHT:
-			key_x=5;
+			*key_x=0;
 			break;
 
 			default: break;
 		}
 	}
-	return key_x; // Maybe use return value?
+	return 1;
 }
 
 /********************************************************************
@@ -368,13 +367,7 @@ int main(int argc, char *argv[])
     
     // The main control loop 
     // Wenn kein Autocontrol:
-    int temp;
-	while(temp = key_control()) {
-		if (temp == 5) {
-			key_x = 0;
-		} else {
-			key_x = temp;
-		}
+	while(key_control(&key_x)) {
 		init_next_element(&game, &player);
 		// TODO: Next level?
 
@@ -387,8 +380,8 @@ int main(int argc, char *argv[])
 		// TODO: Check keyboard input for manual player
 		// TODO: How to abort the game?
 		//key_x=auto_control(&game, &player); // use only for 'robot player'
-
 		player.x+=key_x*Player_v_x;    // Calculate new x-position
+
 		// TODO: Check for screen borders / keep your distance from the teacher...
 
 
