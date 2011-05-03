@@ -48,7 +48,7 @@ typedef struct {
    float x, y;            // Position
    float vx, vy;          // Speed
    char comp;             // Type of competence 0 - 3,  crash=4
-   unsigned short int  points;	  //
+   unsigned short int  points;	  //Points per elemnt
    // TODO: Extend if needed
 } element_type;
 
@@ -70,6 +70,7 @@ typedef struct {
 	element_type *element;   // array of competence elements -> TODO: use malloc
 	int element_countdown;   // Countdown until next element is launched
 	int cur_act;             // Current element 
+	unsigned int all_points; // Gesamtpunktzahl
 } game_state_type;
 
 
@@ -114,9 +115,11 @@ void init_level(game_state_type *g, player_data_type *p )
 	g->element=(element_type *)malloc(sizeof(element_type)*g->cur_max);   // Simple example for one element, TODO: need to change this COMPLETED
 	g->element_countdown = g->element_pause / 20; //1200ms /20ms (20ms braucht ca. ein programmdurchlauf)
 	g->cur_act=0;
+	g->all_points=0;
 	// Init player position
 	p->x=Win_width/3.f;
 	p->y=(float)CHARACTER_FLOOR;
+
 }
 
 /***************************************************************************
@@ -304,6 +307,19 @@ void draw_digit(int x, int y, int number, char size)
 	SDL_BlitSurface(graphics, &src, screen, &dest);
 }
 
+// Draw Score
+
+// Hier erweitern
+void draw_score(int x, int y, int number)
+{
+	SDL_Rect src, dest;
+
+	src.x = 0;
+	src.y=-10;
+	dest.x = x;	dest.y = y;
+	SDL_BlitSurface(graphics, &src, screen, &dest);
+}
+
 /*******************************************************************
  * Refresh the screen and draw all graphics                        *
  *******************************************************************/
@@ -352,6 +368,8 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 	
 	// TODO (optional): Draw score
 	
+
+
 	SDL_Flip(screen);  // Refresh screen (double buffering)
 }
 
