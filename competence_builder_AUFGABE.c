@@ -94,7 +94,7 @@ int load_game_data(game_state_type *g, char *filename)
     		fscanf(file,"%d",&g->levels);		// Lese aus File erste Zahl: Level Anzahl
     		fscanf(file,"%d %d",&g->cur_max, &g->element_pause);		// Lese aus File Anzahl Blöcke, Wartezeit für Block
 
-    		g->curriculum = malloc(sizeof(char) * g->cur_max);  //Seicher für Array curriculum allokieren
+    		g->curriculum = (char *)malloc(sizeof(char) * g->cur_max);  //Seicher für Array curriculum allokieren
 
     		fscanf(file,"\r");		// Lese aus File: Zeilenumbruch
 
@@ -361,15 +361,17 @@ int key_control(int *key_x) /* TODO: Final Testing */
 {
 	SDL_Event keyevent;
 
+	// Verbesserung von Timo: immer +1 / -1, so k�nnen auch kurzzeitig rechts und links gleichzeitig gedr�ckt werden und es ist trotzdem intuitiv
+
 	SDL_PollEvent(&keyevent);
 	if(keyevent.type==SDL_KEYDOWN) {
         switch(keyevent.key.keysym.sym){
            case SDLK_LEFT:
-        	   *key_x=-1;
+        	   *key_x+=-1;
         	   break;
 
            case SDLK_RIGHT:
-        	   *key_x=1;
+        	   *key_x+=1;
         	   break;
 
            case SDLK_ESCAPE:
@@ -385,11 +387,11 @@ int key_control(int *key_x) /* TODO: Final Testing */
 		switch(keyevent.key.keysym.sym){
 
 		case SDLK_LEFT:
-			*key_x=0;
+			*key_x+=1;
 			break;
 
 		case SDLK_RIGHT:
-			*key_x=0;
+			*key_x+=-1;
 			break;
 
 			default: break;
