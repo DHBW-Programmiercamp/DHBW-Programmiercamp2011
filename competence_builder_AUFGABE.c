@@ -305,7 +305,7 @@ void draw_digit(int x, int y, int number, char size)
 /*******************************************************************
  * Refresh the screen and draw all graphics                        *
  *******************************************************************/
-void paint_all(game_state_type *g, player_data_type *pl)
+void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 {
     int x, y, i;
     if(!g)
@@ -335,7 +335,7 @@ void paint_all(game_state_type *g, player_data_type *pl)
 	//draw_competence(400, 300, 4);
 
 	// Draw player (better do not change the x,y coordinates)
-	draw_tile((int)pl->x, CHARACTER_FLOOR, 0 /* TODO: Animate player when walking 0<->1 */);
+	draw_tile((int)pl->x, CHARACTER_FLOOR, (key_x == 0 ? 0 : 1));
 
 	// Draw teacher 
 	// TODO (optional): Animate/move the teacher in interesting ways...
@@ -446,7 +446,7 @@ int main(int argc, char *argv[])
 	while(key_control(&key_x)) {
 
 		//Draw first
-		paint_all(&game, &player);
+		paint_all(&game, &player, key_x);
 
 		init_next_element(&game, &player);
 		// TODO: Next level?
@@ -472,7 +472,7 @@ int main(int argc, char *argv[])
 			player.x+=key_x*Player_v_x;    // Calculate new x-position
 		}
 
-		paint_all(&game, &player);  // Update graphics
+		paint_all(&game, &player, key_x);  // Update graphics
 
 		SDL_Delay(20); // wait 20 ms
 	}
