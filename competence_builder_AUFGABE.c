@@ -412,8 +412,10 @@ int main(int argc, char *argv[])
 		// TODO: Check keyboard input for manual player
 		// TODO: How to abort the game?
 		//key_x=auto_control(&game, &player); // use only for 'robot player'
-		player.x+=key_x*Player_v_x;    // Calculate new x-position
 
+		if ((player.x <= Win_width && player.x >= MIN_PLAYER_X) || (player.x > Win_width && key_x < 0) || (player.x < MIN_PLAYER_X && key_x > 0)) {
+			player.x+=key_x*Player_v_x;    // Calculate new x-position
+		}
 		// TODO: Check for screen borders / keep your distance from the teacher...
 
 
