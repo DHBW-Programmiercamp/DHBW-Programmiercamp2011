@@ -348,7 +348,7 @@ int main(int argc, char *argv[])
 	// some other variables
 	int i, key_x;
 	
-	init_SDL();    
+	init_SDL();
 
     load_game_data(&game, "competence_builder.txt");
     init_level(&game, &player);
@@ -357,18 +357,22 @@ int main(int argc, char *argv[])
     
     // The main control loop 
     // Wenn kein Autocontrol:
-    key_x = key_control();
-    while(key_x) {
-    	
-    	init_next_element(&game, &player);
+    int temp;
+	while(temp = key_control()) {
+		if (temp == 5) {
+			key_x = 0;
+		} else {
+			key_x = temp;
+		}
+		init_next_element(&game, &player);
 		// TODO: Next level?
-    	
-    	// move_elements is called ten times before the graphics are updated
-    	// Thus, a better simulation precision is achieved 
-    	// witout spending too much performance on (slow) graphics output
+
+		// move_elements is called ten times before the graphics are updated
+		// Thus, a better simulation precision is achieved
+		// witout spending too much performance on (slow) graphics output
 		for(i=0; i<10; i++)
 			move_elements(&game);
-		
+
 		// TODO: Check keyboard input for manual player
 		// TODO: How to abort the game?
 		//key_x=auto_control(&game, &player); // use only for 'robot player'
@@ -377,9 +381,9 @@ int main(int argc, char *argv[])
 		// TODO: Check for screen borders / keep your distance from the teacher...
 
 
-				    	
+
 		paint_all(&game, &player);  // Update graphics
-        
+
 		SDL_Delay(20); // wait 20 ms
 	}
     
