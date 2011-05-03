@@ -196,7 +196,7 @@ int check_collision(element_type *el1, element_type *el2)
 			return 1;
 		}
 		else if(el1->y < el2->y + Size_comp + buffer && el1->y > el2->y + Size_comp) {
-			explode(&el1);
+			explode(el1);
 		}
 	}
 
