@@ -159,6 +159,28 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 	// Steigzeit: v0/g
 }
 
+
+int needed_position(game_state_type *g, player_data_type *pl, int x, int y)//calculates position of the student to place an object perfectly
+{
+	float studentabstand = (x-Element_start_x)/100;
+	float ebene = pow(2,floor(Win_floor_y-y/Size_comp));
+	/*
+	int foundfirst=0;
+	float tempx, tempy;
+	float tempvx, tempvy;
+	tempx=(float)Element_start_x;
+	tempy=(float)Win_floor_y;
+	tempvx=-(float)sqrt(tempy * 2. * Gravity);
+	tempvy=(float)((tempx-tempx)/(-tempvy/Gravity*2.));//nur vor dem Abwurf erlaubt
+	float precision = 5.0;
+	while (x<tempx+precision && x>tempx-precision && y<tempy+precision && y>tempy+precision)
+	{
+		tempvy+=Gravity;   // Gravity affects vy
+		tempy+=tempvy;     // change position based on speed
+		tempx+=tempvx;
+	}*/
+}
+
 void explode(element_type *el) {
 	el->comp = 4;
 	el->vx=0;
@@ -185,15 +207,16 @@ int check_collision(element_type *el1, element_type *el2)
 	const float buffer=20.0;
 
 
-	if(el1->x + Size_comp > el2->x && el1->x + Size_comp - buffer < el2->x) {
-		if(el1->y + Size_comp > el2->y && el1->y < el2->y + Size_comp) {
-			el1->vx=(-0.9)*el1->vx;
-		}
+	if(el1->x + Size_comp > el2->x && el1->x + Size_comp - buffer < el2->x &&
+			el1->y + Size_comp > el2->y && el1->y < el2->y + Size_comp) {
+		el1->vx=(-0.9)*el1->vx;
 	}
 	else if(el1->x + Size_comp > el2->x && el1->x < el2->x + Size_comp) {
 		if(el1->y + Size_comp > el2->y && el1->y + Size_comp < el2->y + buffer) {
 			// check if element is not more than half on the element below
 			if(el1->x + Size_comp/2 < el2->x || el1->x > el2->x + Size_comp/2) {
+				// find another block below
+
 				explode(el1);
 			}
 			else {
@@ -534,6 +557,7 @@ int auto_control(game_state_type *g, player_data_type *pl)
 	
 	// The following is a very stupid student example implementation
 	// Can you do better?
+
 	static int move_state=0;
 	
 	move_state=(move_state+1)%50; 
