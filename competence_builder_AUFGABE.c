@@ -185,15 +185,16 @@ int check_collision(element_type *el1, element_type *el2)
 	const float buffer=20.0;
 
 
-	if(el1->x + Size_comp > el2->x && el1->x + Size_comp - buffer < el2->x) {
-		if(el1->y + Size_comp > el2->y && el1->y < el2->y + Size_comp) {
-			el1->vx=(-0.9)*el1->vx;
-		}
+	if(el1->x + Size_comp > el2->x && el1->x + Size_comp - buffer < el2->x &&
+			el1->y + Size_comp > el2->y && el1->y < el2->y + Size_comp) {
+		el1->vx=(-0.9)*el1->vx;
 	}
 	else if(el1->x + Size_comp > el2->x && el1->x < el2->x + Size_comp) {
 		if(el1->y + Size_comp > el2->y && el1->y + Size_comp < el2->y + buffer) {
 			// check if element is not more than half on the element below
 			if(el1->x + Size_comp/2 < el2->x || el1->x > el2->x + Size_comp/2) {
+				// find another block below
+
 				explode(el1);
 			}
 			else {
