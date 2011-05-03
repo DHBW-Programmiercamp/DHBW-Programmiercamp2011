@@ -367,11 +367,6 @@ int main(int argc, char *argv[])
     // Wenn kein Autocontrol:
     int temp;
 	while(temp = key_control()) {
-		if (temp == 5) {
-			key_x = 0;
-		} else {
-			key_x = temp;
-		}
 		init_next_element(&game, &player);
 		// TODO: Next level?
 
@@ -384,8 +379,13 @@ int main(int argc, char *argv[])
 		// TODO: Check keyboard input for manual player
 		// TODO: How to abort the game?
 		//key_x=auto_control(&game, &player); // use only for 'robot player'
-
+		if (temp == 5) {
+			key_x = 0;
+		} else {
+			key_x = temp;
+		}
 		player.x+=key_x*Player_v_x;    // Calculate new x-position
+
 		// TODO: Check for screen borders / keep your distance from the teacher...
 
 
