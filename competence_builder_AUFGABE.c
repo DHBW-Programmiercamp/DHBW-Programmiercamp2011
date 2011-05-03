@@ -41,7 +41,7 @@ const int Element_start_x=100;                // Start position of element
 const float Player_v_x=8.0f;                 // Player speed
 const float Gravity=0.03f;                   // Gravity 
 
-int comps[9][10]; // für die KI
+
 // Important data structures, TODO: change/extend if needed
 
 // Competence element
@@ -75,6 +75,7 @@ typedef struct {
 	unsigned int all_points; // Gesamtpunktzahl
 	int just_thrown;		//wichtig für die KI
 	int toRun;				//wohin die KI rennen muss
+	short comps[9][10]; // für die KI
 } game_state_type;
 
 
@@ -133,6 +134,7 @@ void init_level(game_state_type *g, player_data_type *p )
 	g->cur_act=0;
 	g->just_thrown=0;
 	g->all_points=0;
+	g->toRun=900;
 
 	// Init player position
 	p->x=Win_width-Size_tile;
@@ -140,7 +142,7 @@ void init_level(game_state_type *g, player_data_type *p )
 	int i,j;
 	for(i=0; i<9; i++)
 		for(j=0; j<10;j++)
-			comps[i][j]=-1;
+			g->comps[i][j]=-1;
 }
 
 /***************************************************************************
@@ -633,31 +635,31 @@ int auto_control(game_state_type *g, player_data_type *pl)
 		int i,j;
 		for(i=9; i>0; i--)//unterste Reihe auslassen
 			for(j=9; j>=0;j--)//ganz linke Spalte auslassen
-				if(comps[i][j]==-1 && comps[i-1][j+1]!=nextcomp && comps[i-1][j]!=nextcomp && nextx==0 && comps[i-1][j+1]!=-1 && comps[i-1][j+1]!=-1)
+				if(g->comps[i][j]==-1 && g->comps[i-1][j+1]!=nextcomp && g->comps[i-1][j]!=nextcomp && nextx==0 && g->comps[i-1][j]!=-1 && g->comps[i-1][j+1]!=-1)
 				{
 					nextx=j;
 					nexty=i;
 				}
 		if(nextx==-1)
 		{
-			int j=10;
+			int j=0;
 			while(nextx==-1)
 			{
-				if(comps[0][j]==-1)
+				if(g->comps[0][j]==-1)
 				{
-					nextx=0;
-					nexty=j;
+					nextx=j;
+					nexty=0;
 				}
-				j--;
+				j++;
 			}
 		}
 		g->just_thrown=0;
-		comps[nextx][nexty]=nextcomp;
-		int nextxpix=850-(nextx*60);
+		g->comps[nexty][nextx]=nextcomp;
+		int nextxpix=920-(nextx*60);
 		int nextypix=Win_floor_y-50-(nextx*60);
 		g->toRun = needed_position(g, pl, nextxpix, nextypix);
-
 	}
+
 	int key=0;
 	if(g->toRun<pl->x)
 		key=-1;
@@ -734,7 +736,7 @@ int main(int argc, char *argv[])
 
 			// Wenn die Automatik l�uft sich dieser auch bedienen
 			// Wenn die Automatik l�uft sich dieser auch bedienen
-			if (auto_control_val) {
+			if (1){//auto_control_val) {
 				key_x = 0;
 				key_x=auto_control(&game, &player); // use only for 'robot player'
 			}
