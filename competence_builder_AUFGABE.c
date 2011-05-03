@@ -354,15 +354,17 @@ int key_control(int *key_x) /* TODO: Final Testing */
 {
 	SDL_Event keyevent;
 
+	// Verbesserung von Timo: immer +1 / -1, so können auch kurzzeitig rechts und links gleichzeitig gedrückt werden und es ist trotzdem intuitiv
+
 	SDL_PollEvent(&keyevent);
 	if(keyevent.type==SDL_KEYDOWN) {
         switch(keyevent.key.keysym.sym){
            case SDLK_LEFT:
-        	   *key_x=-1;
+        	   *key_x+=-1;
         	   break;
 
            case SDLK_RIGHT:
-        	   *key_x=1;
+        	   *key_x+=1;
         	   break;
 
            case SDLK_ESCAPE:
@@ -378,11 +380,11 @@ int key_control(int *key_x) /* TODO: Final Testing */
 		switch(keyevent.key.keysym.sym){
 
 		case SDLK_LEFT:
-			*key_x=0;
+			*key_x+=1;
 			break;
 
 		case SDLK_RIGHT:
-			*key_x=0;
+			*key_x+=-1;
 			break;
 
 			default: break;
