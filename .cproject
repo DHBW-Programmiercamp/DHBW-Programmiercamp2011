@@ -28,7 +28,7 @@
 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1675743585" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1218317849" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug">
-<option id="gnu.c.link.option.libs.389744899" superClass="gnu.c.link.option.libs" valueType="libs">
+<option id="gnu.c.link.option.libs.389744899" name="Libraries (-l)" superClass="gnu.c.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="m"/>
 <listOptionValue builtIn="false" value="SDL"/>
 </option>
