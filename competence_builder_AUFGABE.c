@@ -110,7 +110,7 @@ int load_game_data(game_state_type *g, char *filename)
 void init_level(game_state_type *g, player_data_type *p )
 {
 	g->element=(element_type *)malloc(sizeof(element_type)*g->cur_max);   // Simple example for one element, TODO: need to change this COMPLETED
-	g->element_countdown = g->element_pause / 20;
+	g->element_countdown = g->element_pause / 20; //1200ms /20ms (20ms braucht ca. ein programmdurchlauf)
 	g->cur_act=0;
 	// Init player position
 	p->x=Win_width/3.f;
@@ -142,6 +142,8 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 		el->comp = g->curriculum[g->cur_act];
 		g->element[g->cur_act]=*el;
 		free(el);
+
+		//g->element[g->cur_act]=*el;
 		g->cur_act++;
 	}
 	return;
@@ -361,7 +363,7 @@ int key_control(int *key_x) /* TODO: Final Testing */
 {
 	SDL_Event keyevent;
 
-	// Verbesserung von Timo: immer +1 / -1, so können auch kurzzeitig rechts und links gleichzeitig gedrückt werden und es ist trotzdem intuitiv
+	// Verbesserung von Timo: immer +1 / -1, so kï¿½nnen auch kurzzeitig rechts und links gleichzeitig gedrï¿½ckt werden und es ist trotzdem intuitiv
 
 	SDL_PollEvent(&keyevent);
 	if(keyevent.type==SDL_KEYDOWN) {
