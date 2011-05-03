@@ -87,8 +87,9 @@ int load_game_data(game_state_type *g, char *filename)
 // Initialize next level / player
 void init_level(game_state_type *g, player_data_type *p )
 {
-	g->element=(element_type *)malloc(sizeof(element_type));   // Simple example for one element, TODO: need to change this
-
+	g->element=(element_type *)malloc(sizeof(element_type)*g->cur_max);   // Simple example for one element, TODO: need to change this COMPLETED
+	g->element_countdown = 100;
+	g->cur_act=0;
 	// Init player position
 	p->x=Win_width/3.f;
 	p->y=(float)Win_floor_y;
@@ -99,25 +100,28 @@ void init_level(game_state_type *g, player_data_type *p )
  ***************************************************************************/
 void init_next_element(game_state_type *g, player_data_type *pl)
 {
+	// TO DO: ...
+	// TO DO: Initialize a new competence element, when/before it is thrown by the teacher
+	// TO DO: Check if there are further elements or whether the level is completed
+	// TO DO: Keep in mind the correct waiting time between elements
+	// TO DO: Use the following calculation to initialize x, y, vx, vy (as explained in game rules)
+
 	element_type *el; 
-
-	return; // TODO: ...
-	
-	// TODO: Initialize a new competence element, when/before it is thrown by the teacher
-	
-	// TODO: Check if there are further elements or whether the level is completed
-	
-	// TODO: Keep in mind the correct waiting time between elements
-
-	// TODO: Use the following calculation to initialize x, y, vx, vy (as explained in game rules)
-	// The teacher throws in such direction that the competence lands at the current player position
-	// For the competition these calculations must be left unchanged! 
-	
-	el->x=(float)Element_start_x;
-	el->y=(float)Win_floor_y; 
-	el->vy=-(float)sqrt(el->y * 2. * Gravity);
-	el->vx=(float)((pl->x-el->x)/(-el->vy/Gravity*2.));
-
+	g->element_countdown--;
+	if(g->element_countdown == 0 && g->cur_act!=g->cur_max)//Soll er gerade werfen und sind noch Elemente zum Werfen da
+	{
+		g->element_countdown=100;
+		// The teacher throws in such direction that the competence lands at the current player position
+		// For the competition these calculations must be left unchanged!
+		el->x=(float)Element_start_x;
+		el->y=(float)Win_floor_y;
+		el->vy=-(float)sqrt(el->y * 2. * Gravity);
+		el->vx=(float)((pl->x-el->x)/(-el->vy/Gravity*2.));
+		el->comp = g->curriculum[g->cur_act];
+		g->element[g->cur_act]=*el;
+		g->cur_act++;
+	}
+	return;
 	// Just in case, some notes regarding the physics - you don't need to understand that
     // h max = v2 / (2g)       v=sqrt(h max * 2 * g)
 	// R = v^2 / g * sin (2 beta)
@@ -256,7 +260,7 @@ void paint_all(game_state_type *g, player_data_type *pl)
 			draw_tile(x, y, 4+(x/Size_tile%3));
 
 	// TODO: draw competences, some stupid examples
-	draw_competence(100, 100, 3); 
+	draw_competence(100, 100, 3);
 	draw_competence(400, Win_floor_y, 1); 
 	draw_competence(400, 300, 4); 
 
@@ -278,28 +282,46 @@ void paint_all(game_state_type *g, player_data_type *pl)
 /********************************************************************
  * SDL-Function to check for keyboard events                        *
  ********************************************************************/
-int key_control()
+int key_control() /* TODO: Final Testing */
 {
-	static int key_x=0;    // Maybe this is of use to you... - otherwise just delete it 
+	static int key_x=0;    // Maybe this is of use to you... - otherwise just delete it
 	SDL_Event keyevent;    
 
 	SDL_PollEvent(&keyevent);
 	if(keyevent.type==SDL_KEYDOWN) {
         switch(keyevent.key.keysym.sym){
-           case SDLK_LEFT: /* TODO: Do something */  break;
-           case SDLK_RIGHT: /* TODO: Do something */ break;
-	       case SDLK_ESCAPE: return 0; break;
+           case SDLK_LEFT:
+        	   key_x=-1;
+        	   break;
+
+           case SDLK_RIGHT:
+        	   key_x=+1;
+        	   break;
+
+           case SDLK_ESCAPE:
+        	   return 0;
+        	   break;
+
            default: break;
 		}
 	}
+
 	else if(keyevent.type==SDL_KEYUP) {
+
 		switch(keyevent.key.keysym.sym){
-           case SDLK_LEFT: /* TODO: Do something */  break;
-           case SDLK_RIGHT: /* TODO: Do something */  break;
-           default: break;
+
+		case SDLK_LEFT:
+			key_x=5;
+			break;
+
+		case SDLK_RIGHT:
+			key_x=5;
+			break;
+
+			default: break;
 		}
 	}
-	return 1; // Maybe use return value?
+	return key_x; // Maybe use return value?
 }
 
 /********************************************************************
@@ -334,7 +356,7 @@ int main(int argc, char *argv[])
 	// some other variables
 	int i, key_x;
 	
-	init_SDL();    
+	init_SDL();
 
     load_game_data(&game, "competence_builder.txt");
     init_level(&game, &player);
@@ -342,26 +364,34 @@ int main(int argc, char *argv[])
     // TODO optional: show_splash_screen, select player, ...
     
     // The main control loop 
-    while(key_control()) {
-    	
-    	init_next_element(&game, &player);
+    // Wenn kein Autocontrol:
+    int temp;
+	while(temp = key_control()) {
+		if (temp == 5) {
+			key_x = 0;
+		} else {
+			key_x = temp;
+		}
+		init_next_element(&game, &player);
 		// TODO: Next level?
-    	
-    	// move_elements is called ten times before the graphics are updated
-    	// Thus, a better simulation precision is achieved 
-    	// witout spending too much performance on (slow) graphics output
+
+		// move_elements is called ten times before the graphics are updated
+		// Thus, a better simulation precision is achieved
+		// witout spending too much performance on (slow) graphics output
 		for(i=0; i<10; i++)
 			move_elements(&game);
-		
+
 		// TODO: Check keyboard input for manual player
 		// TODO: How to abort the game?
-		key_x=auto_control(&game, &player); // use only for 'robot player'
+		//key_x=auto_control(&game, &player); // use only for 'robot player'
 
 		player.x+=key_x*Player_v_x;    // Calculate new x-position
 		// TODO: Check for screen borders / keep your distance from the teacher...
-				    	
+
+
+
 		paint_all(&game, &player);  // Update graphics
-        
+
 		SDL_Delay(20); // wait 20 ms
 	}
     
