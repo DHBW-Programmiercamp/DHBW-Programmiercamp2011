@@ -22,7 +22,7 @@
 // Graphics data - SDL variables
 SDL_Surface *graphics, *screen;  // Graphics data, screen data
 
-// Wenn die Autimatik läuft
+// Wenn die Autimatik lï¿½uft
 const int Auto_control=0;
 
 // Definition of sizes of Graphic elements, according to graphics in competence_builder.bmp
@@ -46,6 +46,7 @@ typedef struct {
    float x, y;            // Position
    float vx, vy;          // Speed
    char comp;             // Type of competence 0 - 3,  crash=4
+   unsigned short int  points;	  //
    // TODO: Extend if needed
 } element_type;
 
@@ -98,6 +99,7 @@ int load_game_data(game_state_type *g, char *filename)
 
     		for(cur_count=0;cur_count<(g->cur_max);cur_count++) { 		//Schleife um alle BlÃ¶cke  nacheinander auszulesen
     			fscanf(file,"%c ",&(g->curriculum[cur_count]) );		// Lese aus File BlÃ¶cke...
+    			g->curriculum[cur_count] = g->curriculum[cur_count] - 48; // ASCII Konvertieren
     		}
 
     fclose(file);    // close file
@@ -354,7 +356,7 @@ int key_control(int *key_x) /* TODO: Final Testing */
 {
 	SDL_Event keyevent;
 
-	// Verbesserung von Timo: immer +1 / -1, so können auch kurzzeitig rechts und links gleichzeitig gedrückt werden und es ist trotzdem intuitiv
+	// Verbesserung von Timo: immer +1 / -1, so kï¿½nnen auch kurzzeitig rechts und links gleichzeitig gedrï¿½ckt werden und es ist trotzdem intuitiv
 
 	SDL_PollEvent(&keyevent);
 	if(keyevent.type==SDL_KEYDOWN) {
@@ -435,7 +437,7 @@ int main(int argc, char *argv[])
     // The main control loop 
     // key_x initialisieren
     key_x = 0;
-    // Abbrechen, wenn key_control 0 zurückgibt.
+    // Abbrechen, wenn key_control 0 zurï¿½ckgibt.
 	while(key_control(&key_x)) {
 
 		//Draw first
@@ -450,7 +452,7 @@ int main(int argc, char *argv[])
 		for(i=0; i<10; i++)
 			move_elements(&game);
 
-		// Wenn die Automatik läuft sich dieser auch bedienen
+		// Wenn die Automatik lï¿½uft sich dieser auch bedienen
 		if (Auto_control) {
 			key_x = 0;
 			key_x=auto_control(&game, &player); // use only for 'robot player'
@@ -458,8 +460,8 @@ int main(int argc, char *argv[])
 
 		/* Nur bewegen, wenn
 		 * - der Player innerhalb der Bewegungsreichweite ist
-		 * - der Player rechts außerhalb der Bewegungsreichweite ist und sich nach links bewegen möchte
-		 * - der Player links außerhalb der Bewegungsreichweite ist und sich nach rechts bewegen möchte
+		 * - der Player rechts auï¿½erhalb der Bewegungsreichweite ist und sich nach links bewegen mï¿½chte
+		 * - der Player links auï¿½erhalb der Bewegungsreichweite ist und sich nach rechts bewegen mï¿½chte
 		 */
 		if ((player.x + Size_tile <= Win_width && player.x >= MIN_PLAYER_X) || (player.x + Size_tile > Win_width && key_x < 0) || (player.x < MIN_PLAYER_X && key_x > 0)) {
 			player.x+=key_x*Player_v_x;    // Calculate new x-position
@@ -469,6 +471,7 @@ int main(int argc, char *argv[])
 
 		SDL_Delay(20); // wait 20 ms
 	}
-    
+
+    free(game.curriculum);
 	return 0;
 }
