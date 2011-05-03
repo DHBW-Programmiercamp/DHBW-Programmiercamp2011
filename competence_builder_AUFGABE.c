@@ -74,6 +74,7 @@ typedef struct {
 	int cur_act;             // Current element 
 	unsigned int all_points; // Gesamtpunktzahl
 	int just_thrown;		//wichtig für die KI
+	int toRun;				//wohin die KI rennen muss
 } game_state_type;
 
 
@@ -168,7 +169,7 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 		g->element[g->cur_act]=el;
 		//g->element[g->cur_act]=*el;
 		g->cur_act++;
-		just_thrown=1;
+		g->just_thrown=1;
 		//printf("cur_act: %d\n",g->cur_act);
 	}
 
@@ -613,22 +614,22 @@ int auto_control(game_state_type *g, player_data_type *pl)
 {
 	// TODO: This can become the hardest part
 	// Generate player motions such that it collects competence
-	if(just_thrown==1)
+	if(g->just_thrown==1)
 	{
-		int nextx=0,nexty=0;
+		int nextx=-1,nexty=0;
 		int nextcomp = g->curriculum[g->cur_act];
 		int i,j;
 		for(i=9; i>0; i--)//unterste Reihe auslassen
 			for(j=9; j>=0;j--)//ganz linke Spalte auslassen
-				if(comps[i][j]==-1 && comps[i-1][j1]!=nextcomp && comps[i-1][j]!=nextcomp && nextx==0)
+				if(comps[i][j]==-1 && comps[i-1][j+1]!=nextcomp && comps[i-1][j]!=nextcomp && nextx==0 && comps[i-1][j+1]!=-1 && comps[i-1][j+1]!=-1)
 				{
 					nextx=j;
 					nexty=i;
 				}
-		if(nextx==0)
+		if(nextx==-1)
 		{
-			int j=9;
-			while(nextx==0)
+			int j=10;
+			while(nextx==-1)
 			{
 				if(comps[0][j]==-1)
 				{
@@ -638,20 +639,21 @@ int auto_control(game_state_type *g, player_data_type *pl)
 				j--;
 			}
 		}
-		just_thrown=0;
+		g->just_thrown=0;
 		comps[nextx][nexty]=nextcomp;
 		int nextxpix=850-(nextx*60);
-		int nextypix=850-(nextx*60);
-		int x = needed_position(g, pl, nextxpix, nextypix);
-			if(x<pl.x)
-				key=-1;
-			else if(x>pl.x)
-				key=1;
-			else
-				key=0;
-			return key;
+		int nextypix=Win_floor_y-50-(nextx*60);
+		g->toRun = needed_position(g, pl, nextxpix, nextypix);
+
 	}
-	
+	int key=0;
+	if(g->toRun<pl->x)
+		key=-1;
+	else if(g->toRun>pl->x)
+		key=1;
+	else
+		key=0;
+	return key;
 
 	// The following is a very stupid student example implementation
 	// Can you do better?
