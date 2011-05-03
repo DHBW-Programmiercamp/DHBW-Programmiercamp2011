@@ -13,7 +13,7 @@
 #else
 #include "SDL/SDL.h"
 #endif
-//Test Daniel
+
 // Graphics data - SDL variables
 SDL_Surface *graphics, *screen;  // Graphics data, screen data
 
@@ -140,29 +140,52 @@ int check_collision(element_type *el1, element_type *el2)
 	// TODO: Reflection on the side?
 	// TODO: landing/contact on top?
 	// TODO: What about the case, where an element lands on two other elements?
-	
+
+
+
+	if(el1->x + Size_comp > el2->x && el1->x < el2->x + Size_comp) {
+		if(el1->y + Size_comp > el2->y && el1->y < el2->y + Size_comp) {
+			// side collision
+
+		}
+	}
+	else if(el2->x + Size_comp > el1->x) {
+		if(el1->y < el2->y + Size_comp) {
+
+		}
+		else if(el1->y < el2->y + Size_comp) {
+			return 1;
+		}
+	}
 	return 0; // Maybe return some indicator regarding the type of collision?
 }
 
 // Update/move the existing competence element(s)
 void move_elements(game_state_type *g)
 {
-	
-	// some example code to start with...
+	int i,j,coll;
 	element_type *el;    // Pointer to some competence element
 	
-	el=&g->element[0];    // Example: Take first element
-	
-	// Normal motion based on current speed and gravity.
-	// This code should probably be used here somehow:
-	el->vy+=Gravity;   // Gravity affects vy
-    el->y+=el->vy;     // change position based on speed
-	el->x+=el->vx; 
+	for(i=0;i<g->cur_max;i++) {
+		el=&g->element[0];    // Take first element
 
-    if(el->y>=Win_floor_y) {   
-    	// TODO: Competence hits floor -> stop moving
+		if(el->y<Win_floor_y) { // Competence hits floor -> stop moving
+
+			// Check for collision with other elements
+			j=-1;
+			do {
+				j++;
+				coll = check_collision(el,&g->element[j]);
+			} while(j<g->cur_max && coll==0);
+			if(coll==0) {
+				// Normal motion based on current speed and gravity.
+				el->vy+=Gravity;   // Gravity affects vy
+				el->y+=el->vy;     // change position based on speed
+				el->x+=el->vx;
+			}
+		}
 	}
-    // TODO: Check for collision with other elements...
+
 }
     
 /*******************************************************************
@@ -290,20 +313,19 @@ void paint_all(game_state_type *g, player_data_type *pl)
 /********************************************************************
  * SDL-Function to check for keyboard events                        *
  ********************************************************************/
-int key_control() /* TODO: Final Testing */
+int key_control(int *key_x) /* TODO: Final Testing */
 {
-	static int key_x=0;    // Maybe this is of use to you... - otherwise just delete it
 	SDL_Event keyevent;    
 
 	SDL_PollEvent(&keyevent);
 	if(keyevent.type==SDL_KEYDOWN) {
         switch(keyevent.key.keysym.sym){
            case SDLK_LEFT:
-        	   key_x=-1;
+        	   *key_x=-1;
         	   break;
 
            case SDLK_RIGHT:
-        	   key_x=+1;
+        	   *key_x=1;
         	   break;
 
            case SDLK_ESCAPE:
@@ -319,17 +341,17 @@ int key_control() /* TODO: Final Testing */
 		switch(keyevent.key.keysym.sym){
 
 		case SDLK_LEFT:
-			key_x=5;
+			*key_x=0;
 			break;
 
 		case SDLK_RIGHT:
-			key_x=5;
+			*key_x=0;
 			break;
 
 			default: break;
 		}
 	}
-	return key_x; // Maybe use return value?
+	return 1;
 }
 
 /********************************************************************
@@ -373,13 +395,7 @@ int main(int argc, char *argv[])
     
     // The main control loop 
     // Wenn kein Autocontrol:
-    int temp;
-	while(temp = key_control()) {
-		if (temp == 5) {
-			key_x = 0;
-		} else {
-			key_x = temp;
-		}
+	while(key_control(&key_x)) {
 		init_next_element(&game, &player);
 		// TODO: Next level?
 
@@ -392,8 +408,8 @@ int main(int argc, char *argv[])
 		// TODO: Check keyboard input for manual player
 		// TODO: How to abort the game?
 		//key_x=auto_control(&game, &player); // use only for 'robot player'
-
 		player.x+=key_x*Player_v_x;    // Calculate new x-position
+
 		// TODO: Check for screen borders / keep your distance from the teacher...
 
 
