@@ -25,7 +25,7 @@
 SDL_Surface *graphics, *screen;  // Graphics data, screen data
 
 // Wenn die Autimatik l�uft
-const int Auto_control=0;
+int auto_control_val = 0;
 
 // Definition of sizes of Graphic elements, according to graphics in competence_builder.bmp
 const int Size_comp=50;                       // Size (x==y) of competence element
@@ -41,6 +41,7 @@ const int Element_start_x=100;                // Start position of element
 const float Player_v_x=8.0f;                 // Player speed
 const float Gravity=0.03f;                   // Gravity 
 
+int comps[9][10]; // für die KI
 // Important data structures, TODO: change/extend if needed
 
 // Competence element
@@ -72,8 +73,21 @@ typedef struct {
 	int element_countdown;   // Countdown until next element is launched
 	int cur_act;             // Current element 
 	unsigned int all_points; // Gesamtpunktzahl
+	int just_thrown;		//wichtig für die KI
 } game_state_type;
 
+
+/*************************************************************************************
+ * Helper
+ */
+
+int digit_count(int number)
+{
+	int i, digits;
+	digits = 1; //Always 1 ditgit
+	for(i = 10; i < number; i *= 10, digits++);
+	return digits;
+}
 
 /*************************************************************************************
  * Initialization
@@ -116,11 +130,16 @@ void init_level(game_state_type *g, player_data_type *p )
 	g->element=(element_type *)malloc(sizeof(element_type)*g->cur_max);   // Simple example for one element, TODO: need to change this COMPLETED
 	g->element_countdown = g->element_pause / 20; //1200ms /20ms (20ms braucht ca. ein programmdurchlauf)
 	g->cur_act=0;
+	g->just_thrown=0;
 	g->all_points=0;
-	// Init player position
-	p->x=Win_width/3.f;
-	p->y=(float)CHARACTER_FLOOR;
 
+	// Init player position
+	p->x=Win_width-Size_tile;
+	p->y=(float)CHARACTER_FLOOR;
+	int i,j;
+	for(i=0; i<9; i++)
+		for(j=0; j<10;j++)
+			comps[i][j]=-1;
 }
 
 /***************************************************************************
@@ -146,10 +165,12 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 		el.vy=-(float)sqrt(el.y * 2. * Gravity);
 		el.vx=(float)((pl->x-el.x)/(-el.vy/Gravity*2.));
 		el.comp = g->curriculum[g->cur_act];
+		el.points = 0;
 		g->element[g->cur_act]=el;
 		//g->element[g->cur_act]=*el;
 		g->cur_act++;
-		printf("cur_act: %d\n",g->cur_act);
+		just_thrown=1;
+		//printf("cur_act: %d\n",g->cur_act);
 	}
 
 	// Just in case, some notes regarding the physics - you don't need to understand that
@@ -158,6 +179,9 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 	// R * g = v2 * sin b * cos b
 	// Steigzeit: v0/g
 }
+
+
+
 
 void explode(element_type *el) {
 	el->comp = 4;
@@ -300,6 +324,7 @@ int init_SDL()
         printf("Unable to init video: %s\n", SDL_GetError()); exit(1);
     }	
 	// Load graphics
+	SDL_WM_SetCaption("Flying Tux: Competence Builder", "Tux_icon.ico");
 	graphics = SDL_LoadBMP("competence_builder.bmp");
     if (graphics == NULL) {
 	    printf("Unable to load bitmap: %s\n", SDL_GetError());  exit(1);
@@ -398,10 +423,12 @@ void draw_blockscore(int x, int y, int number)
  *******************************************************************/
 void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 {
-    int x, y, i, sc;
     if(!g)
     	return;
 	
+    int x, y, i, c, tmpscore, num;
+    char nl;
+
     //Draw color background
     draw_rect(0,Win_floor_y,Win_width, Win_height-Win_floor_y,  30,30,50);
 
@@ -428,16 +455,48 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 
 	//Draw global score
 	//Go Numbers downwards
-	int tmpscore = g->all_points;
+	tmpscore = g->all_points;
 	for(x = 0, i = 1000; i > 0; i = floor((float)i/10), x++) {
-		int num = floor(tmpscore/i);
+		num = floor(tmpscore/i);
 		draw_globalscore(Size_digit_x*x, 0, num);
 		tmpscore -= i*num;
 	}
 
-	// Draw elements
-	for(i = 0; i < g->cur_act; i++)
-		draw_competence(g->element[i].x, g->element[i].y, g->element[i].comp);
+	// Draw elements + points
+	for(i = 0; i < g->cur_act; i++) {
+		if(g->element[i].comp != 5) { //Do not draw not existing curriculum
+			draw_competence(g->element[i].x, g->element[i].y, g->element[i].comp);
+			int digits = digit_count(g->element[i].points);
+			//Position y middle, x middle in box
+			int left_x, middle_x, middle_y, up_y;
+			middle_y = round((float)Size_smalldigit_y/2);
+			up_y = g->element[i].y + (round(Size_comp/2) - middle_y);
+			middle_x = round((digits*Size_smalldigit_x)/2);
+			left_x = g->element[i].x + (round(Size_comp/2) - middle_x);
+			nl = 0; //Did we have a valid number (so draw also 0)?
+			tmpscore = g->element[i].points;
+			//<HackyAsHell>
+			switch(digits) {
+				case 3: //>100
+					draw_blockscore(left_x, up_y, floor(tmpscore/100));
+					tmpscore -= floor(tmpscore/100)*100;
+					draw_blockscore(left_x+Size_smalldigit_x, up_y, floor(tmpscore/10));
+					tmpscore -= floor(tmpscore/10)*10;
+					draw_blockscore(left_x+2*Size_smalldigit_x, up_y, tmpscore);
+					break;
+				case 2:
+					draw_blockscore(left_x, up_y, floor(tmpscore/10));
+					tmpscore -= floor(tmpscore/10)*10;
+					draw_blockscore(left_x+Size_smalldigit_x, up_y, tmpscore);
+					break;
+				case 1:
+					draw_blockscore(left_x, up_y, tmpscore);
+					break;
+
+			}
+			//</HackyAsHell>
+		}
+	}
 
 
 
@@ -481,7 +540,10 @@ int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
            case SDLK_RIGHT:
         	   (*key_x)++;
         	   break;
-
+           case 'a':
+        	   auto_control_val = !auto_control_val;
+        	   *key_x=0;
+        	   break;
            case 's':
         	   *key_c=1;
         	   break;
@@ -537,20 +599,82 @@ int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
  * TODO: -> this is the big competition challenge!                 *
  *           put your brightest ideas in here to win!               *
  ********************************************************************/
+int needed_position(game_state_type *g, player_data_type *pl, int x, int y)//calculates position of the student to place an object perfectly
+{
+	float studentabstand = (x-Element_start_x)/100;
+	float ebene = pow(2,floor(Win_floor_y-y/Size_comp));
+	return x;
+	/*
+	int foundfirst=0;
+	float tempx, tempy;
+	float tempvx, tempvy;
+	tempx=(float)Element_start_x;
+	tempy=(float)Win_floor_y;
+	tempvx=-(float)sqrt(tempy * 2. * Gravity);
+	tempvy=(float)((tempx-tempx)/(-tempvy/Gravity*2.));//nur vor dem Abwurf erlaubt
+	float precision = 5.0;
+	while (x<tempx+precision && x>tempx-precision && y<tempy+precision && y>tempy+precision)
+	{
+		tempvy+=Gravity;   // Gravity affects vy
+		tempy+=tempvy;     // change position based on speed
+		tempx+=tempvx;
+	}*/
+}
+
 int auto_control(game_state_type *g, player_data_type *pl)
 {
 	// TODO: This can become the hardest part
-	// Generate player motions such that it collects competence  
+	// Generate player motions such that it collects competence
+	if(just_thrown==1)
+	{
+		int nextx=0,nexty=0;
+		int nextcomp = g->curriculum[g->cur_act];
+		int i,j;
+		for(i=9; i>0; i--)//unterste Reihe auslassen
+			for(j=9; j>=0;j--)//ganz linke Spalte auslassen
+				if(comps[i][j]==-1 && comps[i-1][j1]!=nextcomp && comps[i-1][j]!=nextcomp && nextx==0)
+				{
+					nextx=j;
+					nexty=i;
+				}
+		if(nextx==0)
+		{
+			int j=9;
+			while(nextx==0)
+			{
+				if(comps[0][j]==-1)
+				{
+					nextx=0;
+					nexty=j;
+				}
+				j--;
+			}
+		}
+		just_thrown=0;
+		comps[nextx][nexty]=nextcomp;
+		int nextxpix=850-(nextx*60);
+		int nextypix=850-(nextx*60);
+		int x = needed_position(g, pl, nextxpix, nextypix);
+			if(x<pl.x)
+				key=-1;
+			else if(x>pl.x)
+				key=1;
+			else
+				key=0;
+			return key;
+	}
 	
-	
+
 	// The following is a very stupid student example implementation
 	// Can you do better?
+/*
 	static int move_state=0;
 	
 	move_state=(move_state+1)%50; 
 	if(move_state<20) return 1; // move left
 	if(move_state>29) return -1; // move right
 	return 0; // do not move
+	*/
 }
 
 // main function
@@ -608,7 +732,7 @@ int main(int argc, char *argv[])
 
 			// Wenn die Automatik l�uft sich dieser auch bedienen
 			// Wenn die Automatik l�uft sich dieser auch bedienen
-			if (Auto_control) {
+			if (auto_control_val) {
 				key_x = 0;
 				key_x=auto_control(&game, &player); // use only for 'robot player'
 			}
