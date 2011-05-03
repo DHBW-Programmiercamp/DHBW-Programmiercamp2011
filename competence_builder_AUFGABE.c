@@ -14,6 +14,11 @@
 #include "SDL/SDL.h"
 #endif
 
+#define TILE_BACKGROUND 5
+#define TILE_FLOOR 6
+#define TILE_TABLE 4
+#define MIN_PLAYER_X  2*Size_tile
+
 // Graphics data - SDL variables
 SDL_Surface *graphics, *screen;  // Graphics data, screen data
 
@@ -25,7 +30,7 @@ const int Size_smalldigit_x=12, Size_smalldigit_y=21;   // Size of small digits 
 
 // Basic data of Window layout and physics
 // Better not change this data -> game behaviours should be comparable in competition
-const int Win_width=1024, Win_height=768;     // screen resolution
+const int Win_width=1024, Win_height=760;     // screen resolution
 const int Win_floor_y=630;                    // Position of floor
 const int Element_start_x=100;                // Start position of element
 const float Player_v_x=8.0f;                 // Player speed
@@ -105,12 +110,11 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 	// TO DO: Check if there are further elements or whether the level is completed
 	// TO DO: Keep in mind the correct waiting time between elements
 	// TO DO: Use the following calculation to initialize x, y, vx, vy (as explained in game rules)
-
-	element_type *el; 
-	el=(element_type *)malloc(sizeof(element_type));
 	g->element_countdown--;
 	if(g->element_countdown == 0 && g->cur_act!=g->cur_max)//Soll er gerade werfen und sind noch Elemente zum Werfen da
 	{
+		element_type *el;
+		el=(element_type *)malloc(sizeof(element_type));
 		g->element_countdown = g->element_pause / 20;
 		// The teacher throws in such direction that the competence lands at the current player position
 		// For the competition these calculations must be left unchanged!
@@ -290,13 +294,23 @@ void paint_all(game_state_type *g, player_data_type *pl)
 {
     int x, y;
 	
-    // Draw background
+    //Draw color background
     draw_rect(0,Win_floor_y,Win_width, Win_height-Win_floor_y,  30,30,50);
 
-	// TODO: draw correct background graphics, e.g. with tables and floor
+	//Draw background
 	for(y = 0; y < Win_floor_y; y += Size_tile)
 		for(x = 0; x < Win_width; x += Size_tile)
-			draw_tile(x, y, 5);
+			draw_tile(x, y, TILE_BACKGROUND);
+
+	//Draw teachers place
+	for(x = 0; x < MIN_PLAYER_X; x += Size_tile)
+		draw_tile(x, Win_floor_y, TILE_FLOOR);
+
+	//Draw tables
+	for(; x < Win_width; x += Size_tile)
+		draw_tile(x, Win_floor_y, TILE_TABLE);
+
+
 
 	// TODO: draw competences, some stupid examples
 	draw_competence(100, 100, 3);
