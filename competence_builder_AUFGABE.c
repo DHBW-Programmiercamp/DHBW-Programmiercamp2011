@@ -23,17 +23,19 @@
 #define MENU_BG_SIZE 95
 #define MENU_BUTTON_WIDTH 600
 #define MENU_BUTTON_HEIGHT 50
+#define MENU_RANDOM_WIDTH 300
 #define MENU_HEADER_WIDTH 600
 #define MENU_HEADER_HEIGHT 100
 #define MENU_TUX_HEIGHT 78
 #define MENU_TUX_WIDTH 102
+#define T_TUX_SIZE 32
 //Set player 20px above REAL floor
 #define CHARACTER_FLOOR Win_floor_y
 #define KI_rows 12
 #define KI_cells 14
 
 // Graphics data - SDL variables
-SDL_Surface *graphics, *screen, *menu_bg, *menu_button, *menu_header, *menu_tux;  // Graphics data, screen data, menu data
+SDL_Surface *graphics, *screen, *menu_bg, *menu_button, *menu_header, *menu_tux, *thousand_tux, *menu_random;  // Graphics data, screen data, menu data
 
 // Auto-Control
 int auto_control_val = 1;	//KI ist aktiviert
@@ -46,7 +48,7 @@ const int Size_smalldigit_x=12, Size_smalldigit_y=21;   // Size of small digits 
 
 // Basic data of Window layout and physics
 // Better not change this data -> game behaviours should be comparable in competition
-const int Win_width=1024, Win_height=760;     // screen resolution
+const int Win_width=1056, Win_height=760;     // screen resolution
 const int Win_floor_y=630;                    // Position of floor
 const int Element_start_x=100;                // Start position of element
 const float Player_v_x=8.0f;                 // Player speed
@@ -387,8 +389,10 @@ int init_SDL() {
 	menu_button = SDL_LoadBMP("menu_buttons.bmp");
 	menu_header = SDL_LoadBMP("menu_header.bmp");
 	menu_tux = SDL_LoadBMP("flying_tux.bmp");
+	thousand_tux = SDL_LoadBMP("Tux_icon_32x32.bmp");
+	menu_random = SDL_LoadBMP("zufall.bmp");
 
-    if (!graphics || !menu_bg || !menu_button || !menu_header || !menu_tux) {
+    if (!graphics || !menu_bg || !menu_button || !menu_header || !menu_tux || !menu_random) {
 	    printf("Unable to load bitmaps: %s\n", SDL_GetError());  exit(1);
 	}
 	// Set transparency color
@@ -399,6 +403,9 @@ int init_SDL() {
 	menu_header = SDL_DisplayFormatAlpha(menu_header);
 	SDL_SetColorKey(menu_tux, SDL_SRCCOLORKEY | SDL_RLEACCEL, color);
 	menu_tux = SDL_DisplayFormatAlpha(menu_tux);
+	SDL_SetColorKey(thousand_tux, SDL_SRCCOLORKEY | SDL_RLEACCEL, color);
+	thousand_tux = SDL_DisplayFormatAlpha(thousand_tux);
+
 	return 0;
 }
 
@@ -453,6 +460,17 @@ void draw_button(int x, int y, int number)
 	src.x = 0;	src.y = number*MENU_BUTTON_HEIGHT;
 	dest.x = x;	dest.y = y;
 	SDL_BlitSurface(menu_button, &src, screen, &dest);
+}
+
+void draw_zufall(int x, int y, int number)
+{
+	SDL_Rect src, dest;
+
+	src.w=dest.w=MENU_RANDOM_WIDTH;
+	src.h=dest.h=MENU_BUTTON_HEIGHT;
+	src.x = 0;	src.y = number*MENU_BUTTON_HEIGHT;
+	dest.x = x;	dest.y = y;
+	SDL_BlitSurface(menu_random, &src, screen, &dest);
 }
 
 // draw competence elemtents at position (x, y) (number=0-3)
@@ -516,7 +534,7 @@ void draw_sitebar(int x, int y, int number) {
 /*******************************************************************
  * Refresh the screen and draw all graphics                        *
  *******************************************************************/
-void paint_menu(int *tux_x)
+void paint_menu(int *tux_x, int *random)
 {
 	int x, y;
 	//Draw colored background
@@ -538,6 +556,10 @@ void paint_menu(int *tux_x)
 	//Tux
 	draw_image(menu_tux, (*tux_x), 130, MENU_TUX_WIDTH, MENU_TUX_HEIGHT);
 	(*tux_x) = ((*tux_x)+10)%Win_width;
+
+	//Random?
+	draw_zufall(round(Win_width/2)-round(MENU_BUTTON_WIDTH/2), 230, 1-(*random));
+
 
 	SDL_Flip(screen);
 }
@@ -619,9 +641,11 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x) {
 				case 1:
 					draw_blockscore(left_x, up_y, tmpscore);
 					break;
-				default:
+				default: { //>1000
+					int o = round(Size_comp/2) - round(T_TUX_SIZE/2);
+					draw_image(thousand_tux, g->element[i].x + o, g->element[i].y + o, T_TUX_SIZE, T_TUX_SIZE);
 					break;
-
+				}
 			}
 			//</HackyAsHell>
 		}
@@ -638,7 +662,7 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x) {
 /********************************************************************
  * SDL-Function to check for keyboard events                        *
  ********************************************************************/
-int process_menu_click(char *left_clicked)
+int process_menu_click(char *left_clicked, int *random)
 {
 	SDL_PumpEvents();
 
@@ -647,6 +671,15 @@ int process_menu_click(char *left_clicked)
 		(*left_clicked)=1;
 	else if((*left_clicked)) {//was pressed, is not now
 		//is in button x bounds
+		int x1 = round(Win_width/2)-round(MENU_BUTTON_WIDTH/2);
+		printf("X: %d, Y: %d, X1: %d, X2: %d\n", x, y, x1, x1+MENU_RANDOM_WIDTH);
+		if (x >= x1 && x <= x+MENU_RANDOM_WIDTH) {
+					printf("X\n");
+					if(y >= 230 && y <= 280) { //Random
+						printf("Y\n");
+						(*random) = 1-(*random);
+					}
+				}
 		if(x >= round(Win_width/2)-round(MENU_BUTTON_WIDTH/2) && x <= round(Win_width/2)+round(MENU_BUTTON_WIDTH/2)) {
 			if(y >= 300 && y <= 350) { //Manuell
 				return 2;
@@ -656,6 +689,7 @@ int process_menu_click(char *left_clicked)
 				return 1;
 			}
 		}
+
 		(*left_clicked)=0;
 	}
 	SDL_Delay(10); //stop constant polling
@@ -824,8 +858,8 @@ int main(int argc, char *argv[]) {
 
     char action, left_mouse=0;
     tux_x = 0;
-    while(!(action = process_menu_click(&left_mouse)))
-    	paint_menu(&tux_x);
+    while(!(action = process_menu_click(&left_mouse, &random)))
+    	paint_menu(&tux_x, &random);
 	switch(action) {
 		case 1: //Close
 			return 0;
