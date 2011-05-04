@@ -174,13 +174,14 @@ void init_level(game_state_type *g, player_data_type *p )
 	g->all_points=0;
 	g->toRun=900;
 
-	// Init player position
-	p->x=Win_width-Size_tile;
-	p->y=(float)CHARACTER_FLOOR;
 	int i,j;
 	for(i=0; i<KI_rows; i++)
 		for(j=0; j<KI_cells;j++)
 			g->comps[i][j]=-1;
+
+	// Init player position
+	p->x=Win_width-Size_tile;
+	p->y=(float)CHARACTER_FLOOR;
 }
 
 /***************************************************************************
@@ -770,10 +771,11 @@ int auto_control(game_state_type *g, player_data_type *pl)
 			int nextx=-1,nexty=0;
 			int nextcomp = g->curriculum[g->cur_act];
 			int i,j,k;
+			int cells = KI_cells - 5;
 			for(i=0; i<=KI_rows; i++)//unterste Reihe auslassen
-				for(j=0; j<KI_cells;j++) {//ganz linke Spalte auslassen
+				for(j=0; j<cells;j++) {//ganz linke Spalte auslassen
 					if (i%2==1) {
-						k = KI_cells - j;
+						k = cells - j;
 					} else {
 						k = j;
 					}
@@ -785,7 +787,7 @@ int auto_control(game_state_type *g, player_data_type *pl)
 				}
 			g->just_thrown=0;
 			g->comps[nexty][nextx]=nextcomp;
-			int nextxpix=920-(nextx*55)-(nexty*10);
+			int nextxpix=920-(nextx*70)-(nexty*10);
 			int nextypix=Win_floor_y-50-(nexty*50);
 			g->toRun = needed_position(g, pl, nextxpix, nextypix);
 		}
