@@ -7,11 +7,14 @@
 // Header files
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #ifdef _WIN32 // _WIN32 is defined by many compilers available for the Windows operating system, but not by others.
 #include "C:\MinGW\include\SDL\SDL.h"
+#include "C:\MinGW\include\SDL\SDL_ttf.h"
 #else
 #include "SDL/SDL.h"
+#include "SDL/SDL_ttf.h"
 #endif
 
 #define TILE_BACKGROUND 5
@@ -384,8 +387,13 @@ int init_SDL()
 	if( screen == NULL ) {
         printf("Unable to init video: %s\n", SDL_GetError()); exit(1);
     }	
+	//Initialize SDL_ttf
+	if( TTF_Init() == -1 ) 	{
+		printf("Unable to init TTF.");
+		exit(1);
+	}
 	// Load graphics
-	SDL_WM_SetCaption("Flying Tux: Competence Builder", "Tux_icon.ico");
+	SDL_WM_SetCaption("Flying Tux: Competence Builder", "Competence Builder");
 	graphics = SDL_LoadBMP("competence_builder.bmp");
     if (graphics == NULL) {
 	    printf("Unable to load bitmap: %s\n", SDL_GetError());  exit(1);
@@ -449,6 +457,23 @@ void draw_digit(int x, int y, int number, char size)
 	src.y=Size_tile+Size_comp+(size? 0:Size_digit_y);
 	dest.x = x;	dest.y = y;
 	SDL_BlitSurface(graphics, &src, screen, &dest);
+}
+
+void write_level(int level) {
+	SDL_Color textColor = { 255, 255, 255 };
+	SDL_Rect offset;
+	TTF_Font *font = NULL;
+	SDL_Surface *message = NULL;
+	char string[12];
+	font = TTF_OpenFont("Opificio.ttf", 28);
+	//If there was an error in loading the font
+	if(font == NULL)
+		return;
+	sprintf(string, "Semester: %d", level+1);
+	message = TTF_RenderText_Solid(font, string, textColor);
+	offset.x = 0;
+	offset.y = Win_height - 25;
+	SDL_BlitSurface(message, NULL, screen, &offset);
 }
 
 // Draw Global Score
@@ -522,6 +547,8 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 		draw_globalscore(Size_digit_x*x, 0, num);
 		tmpscore -= i*num;
 	}
+
+	write_level((g->cur_level));
 
 	// Draw elements + points
 	for(i = 0; i < g->cur_act; i++) {
@@ -680,6 +707,10 @@ int needed_position(game_state_type *g, player_data_type *pl, int x, int y)//cal
 		tempy+=tempvy;     // change position based on speed
 		tempx+=tempvx;
 	}*/
+}
+
+void set_window_title(char *title) {
+
 }
 
 int auto_control(game_state_type *g, player_data_type *pl)
