@@ -168,7 +168,7 @@ int load_game_data(game_state_type *g, char *filename) {
 int load_game_data_random(game_state_type *g) {
 	short int cur_count=0;
 
-    srand(time(NULL));
+    srand(time(0));
 
     free(g->cur_max);
 	free(g->element_pause);
@@ -178,11 +178,11 @@ int load_game_data_random(game_state_type *g) {
     g->cur_max[0] = (rand()%100 + 1);
 	g->element_pause = (int *)malloc(sizeof(int));  //Malloc to generate Array for element_pause
  //   g->element_pause[0] = ((rand()%15+5) * 100);
-    g->element_pause[0] = 800;
+    g->element_pause[0] = 1800;
 
 	g->curriculum = (char *)malloc(sizeof(char) * g->cur_max[0]);  //Speicher für Array curriculum allokieren
 
-	for(cur_count=0;cur_count < (g->cur_max[0]);cur_count++) {
+	for(cur_count=0; cur_count < (g->cur_max[0]); cur_count++) {
 		g->curriculum[cur_count] = rand()%4;
 	}
 
@@ -285,6 +285,7 @@ int check_collision(element_type *el1, element_type *el2, game_state_type *g) {
 				if(el1->points==0) {
 					if(el1->comp!=el2->comp) el1->points+=el2->points;
 					if(el1->comp!=el3->comp) el1->points+=el3->points;
+					if(el1->comp!=el2->comp && el1->comp!=el3->comp && el1->points==0) el1->points=1;
 				}
 				return 2; //top collision
 			}
@@ -379,7 +380,7 @@ int init_SDL() {
         printf("Unable to init video: %s\n", SDL_GetError()); exit(1);
     }	
 	// Load graphics
-	SDL_WM_SetCaption("Tux on the fly: Competence Builder", "Competence Builder"); //set Programmtitle
+	SDL_WM_SetCaption("Tux on the fly: Competence Builder", 0); //set Programmtitle
 	SDL_WM_SetIcon(SDL_LoadBMP("Tux_icon.bmp"), 0); //set BMP as Icon
 	graphics = SDL_LoadBMP("competence_builder.bmp");
 	menu_bg = SDL_LoadBMP("menu_texture.bmp");
@@ -838,15 +839,12 @@ int main(int argc, char *argv[]) {
 			break;
 	}
 
-    //init_level(&game, &player);
-    //game.element_pause=500;
-    printf("test");
-        
-    // TODO optional: show_splash_screen, select player, ...
     //For-Schleife für verschiedene Levels
     for(game.cur_level=0;game.cur_level<game.levels;game.cur_level++)     {
-        if (random == 0) load_game_data(&game, "competence_builder.txt");
+        if (random == 0)
+        	load_game_data(&game, "competence_builder.txt");
         else {
+        	game.cur_level=0;
         	load_game_data_random(&game);
         	random = 0;
         }
@@ -871,7 +869,6 @@ int main(int argc, char *argv[]) {
 				break; // next level
 			else if(key_c==6) {
 				random = 1;
-				game.cur_level=0;
 				break; // random level
 			}
 			if(pause==0) {
