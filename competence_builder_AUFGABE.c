@@ -10,10 +10,8 @@
 #include <math.h>
 #ifdef _WIN32 // _WIN32 is defined by many compilers available for the Windows operating system, but not by others.
 #include "C:\MinGW\include\SDL\SDL.h"
-//#include "C:\MinGW\include\SDL\SDL_ttf.h"
 #else
 #include "SDL/SDL.h"
-//#include "SDL/SDL_ttf.h"
 #endif
 
 #define TILE_BACKGROUND 5
@@ -96,7 +94,7 @@ int digit_count(int number)
 }
 
 /*************************************************************************************
- * Initialization
+ * Initialization and load data
  */
 
 // Load lecture/level plan from file
@@ -198,7 +196,6 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 	{
 		element_type el;
 
-		//el=(element_type *)malloc(sizeof(element_type));
 		g->element_countdown = g->element_pause[(g->cur_level)] / 20;
 		// The teacher throws in such direction that the competence lands at the current player position
 		// For the competition these calculations must be left unchanged!
@@ -230,33 +227,26 @@ void explode(element_type *el) {
 	el->points=0;
 }
 
-// TODO (optional/suggestion):
-//        Write a function that checks whether/how two competence elements are colliding
-//        Feel free to use the TODO suggestions - or completely ignore them, if you have your own ideas
-// return:
-// 0 no coll
-// 1 side coll
-// 2 bridge
-// 3 on top
+/********************************************************************
+ * collision check  and set points                                  *
+ * return:     //0 no coll     //2 bridge     //3 on top            *
+ ********************************************************************/
+
 int check_collision(element_type *el1, element_type *el2, game_state_type *g)
 {
-	// TODO: maybe it helps to distinguish between the current, flying element and the others
-	// TODO: overlap between elements?
-	// TODO: Reflection on the side?
-	// TODO: landing/contact on top?
-	// TODO: What about the case, where an element lands on two other elements?
 	int i;
 	char bridge;
 	const float buffer=6.0;
 	element_type *el3;
 
+	//sidecollision check
 	if(el1->x + Size_comp > el2->x && el1->x + Size_comp - buffer < el2->x &&
 			el1->y + Size_comp > el2->y && el1->y < el2->y + Size_comp) {
 		el1->vx=(-0.9)*el1->vx;
 	}
+	//topcollision check
 	else if(el1->x + Size_comp > el2->x && el1->x < el2->x + Size_comp) {
 		if(el1->y + Size_comp > el2->y && el1->y + Size_comp < el2->y + buffer) {
-			// check if element is not more than half on the element below
 
 				// find another block below (bridge between two blocks)
 				i=0;
@@ -278,16 +268,17 @@ int check_collision(element_type *el1, element_type *el2, game_state_type *g)
 						if(el1->comp!=el2->comp) el1->points+=el2->points;
 						if(el1->comp!=el3->comp) el1->points+=el3->points;
 					}
-					return 2;
+					return 2; //top collision
 				}
 				else {
+					// check if element is not more than half on the element below
 					if(el1->x + Size_comp/2 < el2->x || el1->x > el2->x + Size_comp/2) {
 						explode(el1);
 					}
 					else {
 						if(el1->comp!=el2->comp  && el1->points==0) el1->points=el2->points;
 						if(el1->comp!=el2->comp  && el1->points==0 && el2->points==0) el1->points=1;
-						return 3;
+						return 3; //bridge collision
 					}
 				}
 		}
@@ -297,14 +288,15 @@ int check_collision(element_type *el1, element_type *el2, game_state_type *g)
 	}
 
 
-	return 0; // Maybe return some indicator regarding the type of collision?
+	return 0; //no collision
 }
 
-// Update/move the existing competence element(s)
+/********************************************************************
+ * Update/move the existing competence element(s)                   *
+ ********************************************************************/
 void move_elements(game_state_type *g)
 {
 	int i,j,coll,k;
-	//printf("ping\n");
 	for(i=0;i<g->cur_act;i++) {
 		if(g->element[i].comp==4)
 		{
@@ -341,7 +333,7 @@ void move_elements(game_state_type *g)
 			else {
 				g->all_points = 0;
 				for (k=0;k<g->cur_act;k++){
-					g->all_points += g->element[k].points;
+					g->all_points += g->element[k].points;  //count all points from cur_act
 				}
 			}
 
@@ -350,7 +342,7 @@ void move_elements(game_state_type *g)
 			explode(&g->element[i]);
 		}
 		else if (g->element[i].comp<4){
-			g->element[i].points=1;
+			g->element[i].points=1;  //set groundelement.points 1
 		}
 	}
 
@@ -376,11 +368,6 @@ int init_SDL()
 	if( screen == NULL ) {
         printf("Unable to init video: %s\n", SDL_GetError()); exit(1);
     }	
-	//Initialize SDL_ttf
-/*	if( TTF_Init() == -1 ) 	{
-		printf("Unable to init TTF.");
-		exit(1);
-	}*/
 	// Load graphics
 	SDL_WM_SetCaption("Flying Tux: Competence Builder", "Competence Builder");
 	graphics = SDL_LoadBMP("competence_builder.bmp");
@@ -448,23 +435,6 @@ void draw_digit(int x, int y, int number, char size)
 	SDL_BlitSurface(graphics, &src, screen, &dest);
 }
 
-/*void write_level(int level) {
-	SDL_Color textColor = { 255, 255, 255 };
-	SDL_Rect offset;
-	TTF_Font *font = NULL;
-	SDL_Surface *message = NULL;
-	char string[12];
-	font = TTF_OpenFont("Opificio.ttf", 28);
-	//If there was an error in loading the font
-	if(font == NULL)
-		return;
-	sprintf(string, "Semester: %d", level+1);
-	message = TTF_RenderText_Solid(font, string, textColor);
-	offset.x = 0;
-	offset.y = Win_height - 25;
-	SDL_BlitSurface(message, NULL, screen, &offset);
-}*/
-
 // Draw Global Score
 void draw_globalscore(int x, int y, int number)
 {
@@ -530,8 +500,7 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 	for(; x < Win_width; x += Size_tile)
 		draw_tile(x, Win_floor_y, TILE_TABLE);
 
-	//Draw teacher
-	// Animate/move the teacher in interesting ways...
+	//Draw teacher with movement
 	if(g->element_countdown<10) {
 		draw_tile(50, CHARACTER_FLOOR, 2 );
 	}
@@ -554,9 +523,6 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 		draw_globalscore(Size_digit_x*x, 0, num);
 		tmpscore -= i*num;
 	}
-
-	// ttf
-	//write_level((g->cur_level));
 
 	// Draw elements + points
 	for(i = 0; i < g->cur_act; i++) {
@@ -595,9 +561,11 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 	}
 
 	//Draw player
+
 	draw_tile((int)pl->x, CHARACTER_FLOOR, (key_x == 0 ? 1 : (pl->steps%4==0 ? 1 : 0)));
 
-	SDL_Flip(screen);  // Refresh screen (double buffering)
+	// Refresh screen (double buffering)
+	SDL_Flip(screen);
 }
 
 
@@ -613,40 +581,17 @@ int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
 	SDL_PollEvent(&keyevent);
 	if(keyevent.type==SDL_KEYDOWN) {
         switch(keyevent.key.keysym.sym){
-           case SDLK_LEFT:
-        	   (*key_x)--;
-        	   break;
-
-           case SDLK_RIGHT:
-        	   (*key_x)++;
-        	   break;
+           case SDLK_LEFT: (*key_x)--; break;
+           case SDLK_RIGHT: (*key_x)++; break;
            case 'a':
         	   auto_control_val = !auto_control_val;
-        	   *key_x=0;
-        	   break;
-           case 's':
-        	   *key_c=1;
-        	   break;
-
-           case 'f':
-        	   *key_c=2;
-        	   break;
-
-           case 'p':
-        	   *key_c=3;
-        	   break;
-
-           case 'r':
-        	   *key_c=4;
-        	   break;
-
-           case 'n':
-           	   *key_c=5;
-           	   break;
-
-           case SDLK_ESCAPE:
-        	   exit(0);
-        	   break;
+        	   *key_x=0; break;
+           case 's': *key_c=1; break;
+           case 'f': *key_c=2; break;
+           case 'p': *key_c=3; break;
+           case 'r': *key_c=4; break;
+           case 'n': *key_c=5; break;
+           case SDLK_ESCAPE: exit(0); break;
 
            default: break;
 		}
@@ -656,14 +601,8 @@ int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
 
 		switch(keyevent.key.keysym.sym){
 
-		case SDLK_LEFT:
-			(*key_x)++;
-			break;
-
-		case SDLK_RIGHT:
-			(*key_x)--;
-			break;
-
+		case SDLK_LEFT: (*key_x)++;	break;
+		case SDLK_RIGHT: (*key_x)--; break;
         case 's':
         case 'f':
         case 'p':
@@ -672,52 +611,22 @@ int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
      	   *key_c=0;
      	   break;
 
-			default: break;
+		default: break;
 		}
 	}
 	return 1;
 }
 
 /********************************************************************
- * The student-robot                                                *
- * generate left/right player motions automatically                 *
- * TODO: -> this is the big competition challenge!                 *
- *           put your brightest ideas in here to win!               *
+ * The student-robot  - KI                                              *
  ********************************************************************/
-int needed_position(game_state_type *g, player_data_type *pl, int x, int y)//calculates position of the student to place an object perfectly
-{
-/*
-	int foundfirst=0;
-	float tempx, tempy;
-	float tempvx, tempvy;
-	tempx=(float)Element_start_x;
-	tempy=(float)Win_floor_y;
-	tempvy=-(float)sqrt(tempy * 2. * Gravity);
-	tempvx=(float)((tempx-tempx)/(-tempvy/Gravity*2.));//nur vor dem Abwurf erlaubt
-	float precision = 5.0;
-	while (x<tempx+precision && x>tempx-precision && y<tempy+precision && y>tempy+precision)
-	{
-		tempvy+=Gravity;   // Gravity affects vy
-		tempy+=tempvy;     // change position based on speed
-		tempx+=tempvx;
-	}
-	el.x=(float)Element_start_x;
-	el.y=(float)Win_floor_y;
-	el.vy=-(float)sqrt(el.y * 2. * Gravity);
-	el.vx=(float)((pl->x-el.x)/(-el.vy/Gravity*2.));*/
-	return x;
-}
-
-void set_window_title(char *title) {
-
-}
 
 int auto_control(game_state_type *g, player_data_type *pl)
 {
 	// TODO: This can become the hardest part
 	// Generate player motions such that it collects competence
 
-	// erste KI: Für niedrigere Geschwindigkeiten
+	// erste KI: Fï¿½r niedrigere Geschwindigkeiten
 
 		/**Comps:
 		 * speichert wie die existierenden Comps zueinander stehen (sollten)
@@ -806,7 +715,11 @@ int auto_control(game_state_type *g, player_data_type *pl)
 		return key;
 }
 
-// main function
+
+/******************************************
+ * Main Function
+ ***************************************/
+
 int main(int argc, char *argv[])
 {
 	// Major game variables: Player + game state
@@ -820,13 +733,8 @@ int main(int argc, char *argv[])
 	
 	init_SDL();
 
-    load_game_data_info(&game, "competence_builder.txt");
-    //init_level(&game, &player);
-    //game.element_pause=500;
-    printf("test");
-        
-    // TODO optional: show_splash_screen, select player, ...
-    
+    load_game_data_info(&game, "competence_builder.txt");  //Load Level Definition data
+
     //For-Schleife fÃ¼r verschiedene Levels
     for(game.cur_level=0;game.cur_level<game.levels;game.cur_level++)
     {
@@ -858,9 +766,7 @@ int main(int argc, char *argv[])
 			if(pause==0) {
 				//Draw first
 				paint_all(&game, &player, key_x);
-
 				init_next_element(&game, &player);
-				//printf("%d %d\n",game.cur_act,game.element[game.cur_act-1].comp);
 
 				// move_elements is called ten times before the graphics are updated
 				// Thus, a better simulation precision is achieved
@@ -868,7 +774,6 @@ int main(int argc, char *argv[])
 				for(i=0; i<10; i++)
 					move_elements(&game);
 
-				// Wenn die Automatik lï¿½uft sich dieser auch bedienen
 				// Wenn die Automatik lï¿½uft sich dieser auch bedienen
 		if (auto_control_val) {
 			key_x = 0;
@@ -894,9 +799,12 @@ int main(int argc, char *argv[])
 //
 //			}
 
-		} // End while-Schleife
-		free(game.curriculum);
+		}
+		free(game.curriculum); //Free up memory of Level Data Array
     }
+    free(game.cur_max); //Free up memory of Level Definition (cur_max) Array
+    free(game.element_pause); //Free up memory of Level Definition (element_pause) Array
+    free(game.element); //Free up memory of Element Array
     return 0;
 }
 
