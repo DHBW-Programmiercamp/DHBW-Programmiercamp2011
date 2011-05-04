@@ -190,7 +190,6 @@ void init_level(game_state_type *g, player_data_type *p )
  ***************************************************************************/
 void init_next_element(game_state_type *g, player_data_type *pl)
 {
-	int i=0;
 	// TO DO: ...
 	// TO DO: Initialize a new competence element, when/before it is thrown by the teacher
 	// TO DO: Check if there are further elements or whether the level is completed
