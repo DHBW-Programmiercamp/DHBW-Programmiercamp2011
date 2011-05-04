@@ -146,7 +146,6 @@ int load_game_data(game_state_type *g, char *filename) {
 		fscanf(file,"%d ", &help );		// Lese aus File uninteressante Blöcke und schreibe in helper Variable die nicht weiter benutzt wird...
 		if (help == '\n' || help == '\r')
 			help2++;
-		printf("%d ", help);
 	}
 
 	for(cur_count=0;cur_count<(g->cur_max[(g->cur_level)]);cur_count++) { 		//Schleife um alle Blöcke  nacheinander auszulesen
@@ -198,7 +197,6 @@ void init_next_element(game_state_type *g, player_data_type *pl) {
 		//g->element[g->cur_act]=*el;
 		g->cur_act++;
 		g->just_thrown=1;
-		//printf("cur_act: %d\n",g->cur_act);
 	}
 
 	// Just in case, some notes regarding the physics - you don't need to understand that
