@@ -8,6 +8,7 @@
 // Header files
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <math.h>
 #ifdef _WIN32 // _WIN32 is defined by many compilers available for the Windows operating system, but not by others.
 #include "C:\MinGW\include\SDL\SDL.h"
@@ -154,6 +155,30 @@ int load_game_data(game_state_type *g, char *filename) {
 	}
 
     fclose(file);    // close file
+    return 0;
+}
+
+int load_game_data_random(game_state_type *g) {
+	short int cur_count=0;
+
+    srand(time(NULL));
+
+    free(g->cur_max);
+	free(g->element_pause);
+
+	g->levels = 1;
+    g->cur_max = (int *)malloc(sizeof(int));  //Malloc to generate Array for cur_max
+    g->cur_max[0] = (rand()%100 + 1);
+	g->element_pause = (int *)malloc(sizeof(int));  //Malloc to generate Array for element_pause
+ //   g->element_pause[0] = ((rand()%15+5) * 100);
+    g->element_pause[0] = 800;
+
+	g->curriculum = (char *)malloc(sizeof(char) * g->cur_max[0]);  //Speicher für Array curriculum allokieren
+
+	for(cur_count=0;cur_count < (g->cur_max[0]);cur_count++) {
+		g->curriculum[cur_count] = rand()%4;
+	}
+
     return 0;
 }
 
@@ -552,11 +577,12 @@ int key_control(int *key_x, int *key_c) {
            case 'a':
         	   auto_control_val = !auto_control_val;
         	   *key_x=0; break;
-           case 's': *key_c=1; break;
-           case 'f': *key_c=2; break;
-           case 'p': *key_c=3; break;
-           case 'r': *key_c=4; break;
-           case 'n': *key_c=5; break;
+           case 's': *key_c=1; break;	// slower
+           case 'f': *key_c=2; break;	// faster
+           case 'p': *key_c=3; break;	// pause
+           case 'r': *key_c=4; break;	// resume
+           case 'n': *key_c=5; break;	// next level
+           case 'z': *key_c=6; break;	// random
            case SDLK_ESCAPE: exit(0); break;
 
            default: break;
@@ -574,6 +600,7 @@ int key_control(int *key_x, int *key_c) {
         case 'p':
         case 'r':
         case 'n':
+        case 'z':
      	   *key_c=0;
      	   break;
 
@@ -589,8 +616,6 @@ int key_control(int *key_x, int *key_c) {
 
 int auto_control(game_state_type *g, player_data_type *pl)
 {
-	// TODO: This can become the hardest part
-	// Generate player motions such that it collects competence
 
 	// erste KI: F�r niedrigere Geschwindigkeiten
 
@@ -691,7 +716,7 @@ int main(int argc, char *argv[]) {
 	player_data_type player;
 	game_state_type game;
 	char pause=0;
-	int delay=20;
+	int delay=20, random=0;
 
 	// some other variables
 	int i, key_x, key_c;
@@ -702,7 +727,11 @@ int main(int argc, char *argv[]) {
 
     //For-Schleife für verschiedene Levels
     for(game.cur_level=0;game.cur_level<game.levels;game.cur_level++)     {
-        load_game_data(&game, "competence_builder.txt");
+        if (random == 0) load_game_data(&game, "competence_builder.txt");
+        else {
+        	load_game_data_random(&game);
+        	random = 0;
+        }
         init_level(&game, &player);
 		// The main control loop
 		// key_x initialisieren
@@ -722,7 +751,11 @@ int main(int argc, char *argv[]) {
 				pause=0;
 			else if(key_c==5)
 				break; // next level
-
+			else if(key_c==6) {
+				random = 1;
+				game.cur_level=0;
+				break; // random level
+			}
 			if(pause==0) {
 				//Draw first
 				paint_all(&game, &player, key_x);
