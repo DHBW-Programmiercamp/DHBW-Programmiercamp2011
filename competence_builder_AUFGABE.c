@@ -1,7 +1,8 @@
 /*  Competence Builder.c
     Competence Builder - AI Programmiercamp 2011, DHBW-Mannheim
-
-    Programmrumpf
+	Team: Tux on the Fly
+	Members: Timo Jacobs, Felix, Otto, Stephan Pfistner, Dirk Klostermann, Nicolai Ommer, Daniel Andres Lopez
+	Releasedate: 4.5.2011
 */
 
 // Header files
@@ -65,19 +66,19 @@ typedef struct {
 	int levels;              // Number of game levels
 	int *element_pause;       // Array (for levels) of time interval between elements
 	int *cur_max;             // Array (for levels) of number of curriculum elements
-	char *curriculum;        // Array of competence numbers (0-3)
+	char *curriculum;        // Array of competence numbers (0-3) [for each level this is filled new]
 	  
 	// Current game state
+	int cur_level;           // Current level
 	element_type *element;   // array of competence elements
 	int element_countdown;   // Countdown until next element is launched
 	int cur_act;             // Current element 
 	unsigned int all_points; // Gesamtpunktzahl
 
-	int cur_level;           // Current level
-
-	int just_thrown;		//wichtig für die KI
+	//KI Variables
+	int just_thrown;
 	int toRun;				//wohin die KI rennen muss
-	short comps[KI_rows][KI_cells]; // für die KI
+	short comps[KI_rows][KI_cells];
 } game_state_type;
 
 
@@ -85,10 +86,9 @@ typedef struct {
  * Helper
  */
 
-int digit_count(int number)
-{
+int digit_count(int number) {
 	int i, digits;
-	digits = 1; //Always 1 ditgit
+	digits = 1; //Always 1 digit
 	for(i = 10; i < number; i *= 10, digits++);
 	return digits;
 }
@@ -99,13 +99,12 @@ int digit_count(int number)
 
 // Load lecture/level plan from file
 //Load all level definition data
-int load_game_data_info(game_state_type *g, char *filename)
-{
+int load_game_data_info(game_state_type *g, char *filename) {
 	FILE *file;
 	short int i_level=0; 	//  Counter for levels
 
     // Open the file for reading
-    file=fopen(filename,"r"); 
+    file = fopen(filename,"r");
     if(file==NULL) {
         printf("Error: can't open file.\n");
         return -1;
@@ -124,8 +123,7 @@ int load_game_data_info(game_state_type *g, char *filename)
 }
 
 //Load specific level data
-int load_game_data(game_state_type *g, char *filename)
-{
+int load_game_data(game_state_type *g, char *filename) {
 	FILE *file;
 	short int cur_count=0; 	// Zähler für das Einlesen des Curriculums
 	int help2=0, i=0; //Zwischenspiecher um übersprungene Daten ins Leere laufen zu lassen  (Funktion für fscanf fehlt: Springe zu einer bestimmten Zahl)
@@ -138,17 +136,16 @@ int load_game_data(game_state_type *g, char *filename)
 		return -1;
 	}
 
-	g->curriculum = (char *) malloc(sizeof(char) * g->cur_max[(g->cur_level)]);  //Speicher für Array curriculum allokieren
+	g->curriculum = (char *)malloc(sizeof(char) * g->cur_max[(g->cur_level)]);  //Speicher für Array curriculum allokieren
 
 	help2 = 1 + 2 * (g->levels);
-	for(i=0;i < g->cur_level;i++){
+	for(i=0;i < g->cur_level;i++) {
 		help2 = help2 + g->cur_max[i];
 	}
-	for(i=0;i<help2;i++){
+	for(i=0;i<help2;i++) {
 		fscanf(file,"%d ", &help );		// Lese aus File uninteressante Blöcke und schreibe in helper Variable die nicht weiter benutzt wird...
 		if (help == '\n' || help == '\r')
 			help2++;
-		printf("%d ", help);
 	}
 
 	for(cur_count=0;cur_count<(g->cur_max[(g->cur_level)]);cur_count++) { 		//Schleife um alle Blöcke  nacheinander auszulesen
@@ -159,18 +156,15 @@ int load_game_data(game_state_type *g, char *filename)
     fclose(file);    // close file
     return 0;
 }
-//----------------------
 
 // Initialize next level / player
-void init_level(game_state_type *g, player_data_type *p )
-{
-
-	g->element=(element_type *)malloc(sizeof(element_type)*g->cur_max[(g->cur_level)]);   // Malloc Array for element
+void init_level(game_state_type *g, player_data_type *p ) {
+	g->element = (element_type *)malloc(sizeof(element_type)*g->cur_max[(g->cur_level)]);   // Malloc Array for element
 	g->element_countdown = g->element_pause[(g->cur_level)] / 20; //1200ms /20ms (20ms braucht ca. ein Programmdurchlauf)
-	g->cur_act=0;
-	g->just_thrown=1;
-	g->all_points=0;
-	g->toRun=900;
+	g->cur_act  =0;
+	g->just_thrown = 1;
+	g->all_points = 0;
+	g->toRun = 900;
 
 	int i,j;
 	for(i=0; i<KI_rows; i++)
@@ -178,22 +172,16 @@ void init_level(game_state_type *g, player_data_type *p )
 			g->comps[i][j]=-1;
 
 	// Init player position
-	p->x=Win_width-Size_tile;
-	p->y=(float)CHARACTER_FLOOR;
+	p->x = Win_width-Size_tile;
+	p->y = (float)CHARACTER_FLOOR;
 }
 
 /***************************************************************************
  * Main game loop: Logic
  ***************************************************************************/
-void init_next_element(game_state_type *g, player_data_type *pl)
-{
-	// TO DO: Initialize a new competence element, when/before it is thrown by the teacher
-	// TO DO: Check if there are further elements or whether the level is completed
-	// TO DO: Keep in mind the correct waiting time between elements
-	// TO DO: Use the following calculation to initialize x, y, vx, vy (as explained in game rules)
+void init_next_element(game_state_type *g, player_data_type *pl) {
 	g->element_countdown--;
-	if(g->element_countdown == 0 && g->cur_act!=g->cur_max[(g->cur_level)])//Soll er gerade werfen und sind noch Elemente zum Werfen da
-	{
+	if(g->element_countdown == 0 && g->cur_act!=g->cur_max[(g->cur_level)]) {//Soll er gerade werfen und sind noch Elemente zum Werfen da
 		element_type el;
 
 		g->element_countdown = g->element_pause[(g->cur_level)] / 20;
@@ -209,7 +197,6 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 		//g->element[g->cur_act]=*el;
 		g->cur_act++;
 		g->just_thrown=1;
-		//printf("cur_act: %d\n",g->cur_act);
 	}
 
 	// Just in case, some notes regarding the physics - you don't need to understand that
@@ -232,8 +219,7 @@ void explode(element_type *el) {
  * return:     //0 no coll     //2 bridge     //3 on top            *
  ********************************************************************/
 
-int check_collision(element_type *el1, element_type *el2, game_state_type *g)
-{
+int check_collision(element_type *el1, element_type *el2, game_state_type *g) {
 	int i;
 	char bridge;
 	const float buffer=6.0;
@@ -247,65 +233,59 @@ int check_collision(element_type *el1, element_type *el2, game_state_type *g)
 	//topcollision check
 	else if(el1->x + Size_comp > el2->x && el1->x < el2->x + Size_comp) {
 		if(el1->y + Size_comp > el2->y && el1->y + Size_comp < el2->y + buffer) {
-
-				// find another block below (bridge between two blocks)
-				i=0;
-				bridge=0;
-				while(i<g->cur_act && bridge==0){
-					if ((el1->x + Size_comp >= g->element[i].x) &&
-							(el1->x <= g->element[i].x + Size_comp) &&
-							el1->y + Size_comp > g->element[i].y &&
-							el1->y + Size_comp < g->element[i].y + buffer &&
-							&(g->element[i])!= el1 && &(g->element[i])!= el2){
-						bridge=1;
-						el3=&(g->element[i]);
-					}
-					i++;
+			// find another block below (bridge between two blocks)
+			i=0;
+			bridge=0;
+			while(i<g->cur_act && bridge==0) {
+				if ((el1->x + Size_comp >= g->element[i].x) &&
+						(el1->x <= g->element[i].x + Size_comp) &&
+						el1->y + Size_comp > g->element[i].y &&
+						el1->y + Size_comp < g->element[i].y + buffer &&
+						&(g->element[i])!= el1 && &(g->element[i])!= el2)
+				{
+					bridge=1;
+					el3=&(g->element[i]);
 				}
+				i++;
+			}
 
-				if (bridge) {
-					if(el1->points==0) {
-						if(el1->comp!=el2->comp) el1->points+=el2->points;
-						if(el1->comp!=el3->comp) el1->points+=el3->points;
-					}
-					return 2; //top collision
+			if (bridge) {
+				if(el1->points==0) {
+					if(el1->comp!=el2->comp) el1->points+=el2->points;
+					if(el1->comp!=el3->comp) el1->points+=el3->points;
+				}
+				return 2; //top collision
+			}
+			else {
+				// check if element is not more than half on the element below
+				if(el1->x + Size_comp/2 < el2->x || el1->x > el2->x + Size_comp/2) {
+					explode(el1);
 				}
 				else {
-					// check if element is not more than half on the element below
-					if(el1->x + Size_comp/2 < el2->x || el1->x > el2->x + Size_comp/2) {
-						explode(el1);
-					}
-					else {
-						if(el1->comp!=el2->comp  && el1->points==0) el1->points=el2->points;
-						if(el1->comp!=el2->comp  && el1->points==0 && el2->points==0) el1->points=1;
-						return 3; //bridge collision
-					}
+					if(el1->comp!=el2->comp  && el1->points==0) el1->points=el2->points;
+					if(el1->comp!=el2->comp  && el1->points==0 && el2->points==0) el1->points=1;
+					return 3; //bridge collision
 				}
+			}
 		}
 		else if(el1->y < el2->y + Size_comp + buffer && el1->y > el2->y + Size_comp) {
 			explode(el1);
 		}
 	}
-
-
 	return 0; //no collision
 }
 
 /********************************************************************
  * Update/move the existing competence element(s)                   *
  ********************************************************************/
-void move_elements(game_state_type *g)
-{
+void move_elements(game_state_type *g) {
 	int i,j,coll,k;
 	for(i=0;i<g->cur_act;i++) {
-		if(g->element[i].comp==4)
-		{
-			if(g->element[i].countdown!=0)
-			{
+		if(g->element[i].comp==4) {
+			if(g->element[i].countdown!=0) {
 				g->element[i].countdown--;
 			}
-			else
-			{
+			else {
 				g->element[i].x = Win_width - Size_comp;
 				g->element[i].y = Win_height - Size_comp;
 				g->element[i].comp = 5;
@@ -332,7 +312,7 @@ void move_elements(game_state_type *g)
 			}
 			else {
 				g->all_points = 0;
-				for (k=0;k<g->cur_act;k++){
+				for (k=0;k<g->cur_act;k++) {
 					g->all_points += g->element[k].points;  //count all points from cur_act
 				}
 			}
@@ -345,7 +325,6 @@ void move_elements(game_state_type *g)
 			g->element[i].points=1;  //set groundelement.points 1
 		}
 	}
-
 }
     
 /*******************************************************************
@@ -355,8 +334,7 @@ void move_elements(game_state_type *g)
  * or add anything here                                            *
  *******************************************************************/
 // Initialize the SDL-library and load game graphics
-int init_SDL()
-{
+int init_SDL() {
 	Uint32 color;
 
     // Initialize SDL 
@@ -383,8 +361,7 @@ int init_SDL()
 }
 
 // Helper function to draw a rectangle with RGB-color
-void draw_rect(int x, int y, int w, int h, int r, int g, int b)
-{
+void draw_rect(int x, int y, int w, int h, int r, int g, int b) {
 	SDL_Rect rct;
 	Uint32 color;
 	
@@ -394,27 +371,22 @@ void draw_rect(int x, int y, int w, int h, int r, int g, int b)
 }
 
 // draw graphics for student/teacher/background at position (x, y) (number=0-6) 
-void draw_tile(int x, int y, int number)
-{
+void draw_tile(int x, int y, int number) {
 	SDL_Rect src, dest;
 
 	//Set sizes
 	src.w = dest.w = Size_tile;
 	src.h = dest.h = Size_tile;
-	dest.x = x;
-	dest.y = y;
-
-	//
 	src.x = number*Size_tile;
 	src.y = 0;
-
+	dest.x = x;
+	dest.y = y;
 
 	SDL_BlitSurface(graphics, &src, screen, &dest);
 }
 
 // draw competence elemtents at position (x, y) (number=0-3)
-void draw_competence(int x, int y, int number)
-{
+void draw_competence(int x, int y, int number) {
 	SDL_Rect src, dest;
 
 	src.w=src.h=dest.w=dest.h=Size_comp;
@@ -424,8 +396,7 @@ void draw_competence(int x, int y, int number)
 }
 
 // Draw digit 'number' (size==1: large, otherwise: small)
-void draw_digit(int x, int y, int number, char size)
-{
+void draw_digit(int x, int y, int number, char size) {
 	SDL_Rect src, dest;
 
 	src.w=dest.w=(size? Size_digit_x : Size_smalldigit_x);
@@ -433,12 +404,12 @@ void draw_digit(int x, int y, int number, char size)
 	src.x = number*src.w; 
 	src.y=Size_tile+Size_comp+(size? 0:Size_digit_y);
 	dest.x = x;	dest.y = y;
+
 	SDL_BlitSurface(graphics, &src, screen, &dest);
 }
 
 // Draw Global Score
-void draw_globalscore(int x, int y, int number)
-{
+void draw_globalscore(int x, int y, int number) {
 	SDL_Rect src, dest;
 
 	src.x = number*Size_digit_x;
@@ -451,8 +422,7 @@ void draw_globalscore(int x, int y, int number)
 }
 
 // Draw numbers on blocks
-void draw_blockscore(int x, int y, int number)
-{
+void draw_blockscore(int x, int y, int number) {
 	SDL_Rect src, dest;
 
 	src.y = Size_digit_y + Size_comp + Size_tile;
@@ -464,8 +434,7 @@ void draw_blockscore(int x, int y, int number)
 	SDL_BlitSurface(graphics, &src, screen, &dest);
 }
 
-void draw_sitebar(int x, int y, int number)
-{
+void draw_sitebar(int x, int y, int number) {
 	SDL_Rect src, dest;
 
 	src.w=src.h=dest.w=dest.h=Size_comp/2;
@@ -477,8 +446,7 @@ void draw_sitebar(int x, int y, int number)
 /*******************************************************************
  * Refresh the screen and draw all graphics                        *
  *******************************************************************/
-void paint_all(game_state_type *g, player_data_type *pl, int key_x)
-{
+void paint_all(game_state_type *g, player_data_type *pl, int key_x) {
     if(!g)
     	return;
 	
@@ -562,7 +530,6 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 	}
 
 	//Draw player
-
 	draw_tile((int)pl->x, CHARACTER_FLOOR, (key_x == 0 ? 1 : (pl->steps%4==0 ? 1 : 0)));
 
 	// Refresh screen (double buffering)
@@ -573,15 +540,14 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 /********************************************************************
  * SDL-Function to check for keyboard events                        *
  ********************************************************************/
-int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
-{
+int key_control(int *key_x, int *key_c) {
 	SDL_Event keyevent;
 
 	// Verbesserung von Timo: immer +1 / -1, so k�nnen auch kurzzeitig rechts und links gleichzeitig gedr�ckt werden und es ist trotzdem intuitiv
 
 	SDL_PollEvent(&keyevent);
 	if(keyevent.type==SDL_KEYDOWN) {
-        switch(keyevent.key.keysym.sym){
+        switch(keyevent.key.keysym.sym) {
            case SDLK_LEFT: (*key_x)--; break;
            case SDLK_RIGHT: (*key_x)++; break;
            case 'a':
@@ -600,7 +566,7 @@ int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
 
 	else if(keyevent.type==SDL_KEYUP) {
 
-		switch(keyevent.key.keysym.sym){
+		switch(keyevent.key.keysym.sym) {
 
 		case SDLK_LEFT: (*key_x)++;	break;
 		case SDLK_RIGHT: (*key_x)--; break;
@@ -628,7 +594,6 @@ int auto_control(game_state_type *g, player_data_type *pl)
 	// Generate player motions such that it collects competence
 
 	// erste KI: F�r niedrigere Geschwindigkeiten
-	if (*(g->element_pause) > 700) {
 
 		/**Comps:
 		 * speichert wie die existierenden Comps zueinander stehen (sollten)
@@ -647,8 +612,14 @@ int auto_control(game_state_type *g, player_data_type *pl)
 			int nextx=-1,nexty=0;
 			int nextcomp = g->curriculum[g->cur_act];
 			int i,j;
-			for(i=KI_rows; i>0; i--)//unterste Reihe auslassen
-				for(j=0; j<KI_cells-1;j++)//ganz linke Spalte auslassen
+			int cells = KI_cells;
+			int rows = KI_rows;
+			int grenze = 800;
+			if (*(g->element_pause) <= grenze) {
+				cells = 4;
+			}
+			for(i=rows; i>0; i--)//unterste Reihe auslassen
+				for(j=0; j<cells-1;j++)//ganz linke Spalte auslassen
 					if(g->comps[i][j]==-1&& g->comps[i-1][j+1]!=nextcomp && g->comps[i-1][j]!=nextcomp && nextx==-1 && g->comps[i-1][j]!=-1 && g->comps[i-1][j+1]!=-1)
 					{
 						nextx=j;
@@ -665,7 +636,32 @@ int auto_control(game_state_type *g, player_data_type *pl)
 						nexty=0;
 					}
 					j++;
+					if (j == cells) {
+						break;
+					}
 				}
+			}
+			if (*(g->element_pause) <= grenze) {
+				for(i=KI_rows; i>0; i--)//unterste Reihe auslassen
+						for(j=cells; j<KI_cells-1;j++)//ganz linke Spalte auslassen
+							if(g->comps[i][j]==-1&& g->comps[i-1][j+1]!=nextcomp && g->comps[i-1][j]!=nextcomp && nextx==-1 && g->comps[i-1][j]!=-1 && g->comps[i-1][j+1]!=-1)
+							{
+								nextx=j;
+								nexty=i;
+							}
+					if(nextx==-1)//die untereste Reihe fehlt noch, hier wird ein anderes System benötigt: erst freie Position von rechts
+					{
+						int j=0;
+						while(nextx==-1)
+						{
+							if(g->comps[0][j]==-1)
+							{
+								nextx=j;
+								nexty=0;
+							}
+							j++;
+						}
+					}
 			}
 			g->just_thrown=0;
 			g->comps[nexty][nextx]=nextcomp;
@@ -676,32 +672,6 @@ int auto_control(game_state_type *g, player_data_type *pl)
 			//int nextypix=Win_floor_y-50-(nexty*50);
 				g->toRun = nextxpix; //needed_position(g, pl, nextxpix, nextypix);
 		}
-	} else { // Zweite KI: f�r h�here Geschwindigkeiten
-		if (g->just_thrown==1) {
-			int nextx=-1,nexty=0;
-			int nextcomp = g->curriculum[g->cur_act];
-			int i,j,k;
-			int cells = KI_cells - 5;
-			for(i=0; i<=KI_rows; i++)//unterste Reihe auslassen
-				for(j=0; j<cells;j++) {//ganz linke Spalte auslassen
-					if (i%2==1) {
-						k = cells - j;
-					} else {
-						k = j;
-					}
-					if(g->comps[i][k]==-1 && nextx==-1)
-					{
-						nextx=k;
-						nexty=i;
-					}
-				}
-			g->just_thrown=0;
-			g->comps[nexty][nextx]=nextcomp;
-			int nextxpix=920-(nextx*70)-(nexty*10);
-			int nextypix=Win_floor_y-50-(nexty*50);
-			//g->toRun = needed_position(g, pl, nextxpix, nextypix);
-		}
-	}
 		int key=0;
 		if(g->toRun<pl->x)
 			key=-1;
@@ -717,8 +687,7 @@ int auto_control(game_state_type *g, player_data_type *pl)
  * Main Function
  ***************************************/
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	// Major game variables: Player + game state
 	player_data_type player;
 	game_state_type game;
@@ -733,8 +702,7 @@ int main(int argc, char *argv[])
     load_game_data_info(&game, "competence_builder.txt");  //Load Level Definition data
 
     //For-Schleife für verschiedene Levels
-    for(game.cur_level=0;game.cur_level<game.levels;game.cur_level++)
-    {
+    for(game.cur_level=0;game.cur_level<game.levels;game.cur_level++)     {
         load_game_data(&game, "competence_builder.txt");
         init_level(&game, &player);
 		// The main control loop
@@ -743,22 +711,18 @@ int main(int argc, char *argv[])
 		key_c = 0;
 		// Abbrechen, wenn key_control 0 zur�ckgibt.
 		while(key_control(&key_x,&key_c)) {
-			if(key_c==1) {
+			if(key_c==1)
 				delay+=10;
-			}
 			else if(key_c==2) {
 				delay-=10;
 				if(delay<10) delay=3;
 			}
-			else if(key_c==3) {
+			else if(key_c==3)
 				pause=1;
-			}
-			else if(key_c==4) {
+			else if(key_c==4)
 				pause=0;
-			}
-			else if(key_c==5) {
+			else if(key_c==5)
 				break; // next level
-			}
 
 			if(pause==0) {
 				//Draw first
