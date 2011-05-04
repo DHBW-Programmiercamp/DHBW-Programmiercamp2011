@@ -461,10 +461,6 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 	for(; x < Win_width; x += Size_tile)
 		draw_tile(x, Win_floor_y, TILE_TABLE);
 
-	//Draw player
-	// TODO: Dynamic position, if jumping
-	draw_tile((int)pl->x, CHARACTER_FLOOR, (key_x == 0 ? 0 : 1));
-
 	//Draw teacher
 	// TODO (optional): Animate/move the teacher in interesting ways...
 	draw_tile(50, CHARACTER_FLOOR, 3 );
@@ -513,6 +509,10 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 			//</HackyAsHell>
 		}
 	}
+
+	//Draw player
+	// TODO: Dynamic position, if jumping
+	draw_tile((int)pl->x, CHARACTER_FLOOR, (key_x == 0 ? 0 : 1));
 
 
 
