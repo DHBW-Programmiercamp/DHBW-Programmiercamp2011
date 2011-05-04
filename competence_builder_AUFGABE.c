@@ -718,7 +718,6 @@ int auto_control(game_state_type *g, player_data_type *pl)
 	// Generate player motions such that it collects competence
 
 	// erste KI: Für niedrigere Geschwindigkeiten
-	if (*(g->element_pause) > 700) {
 
 		/**Comps:
 		 * speichert wie die existierenden Comps zueinander stehen (sollten)
@@ -737,8 +736,14 @@ int auto_control(game_state_type *g, player_data_type *pl)
 			int nextx=-1,nexty=0;
 			int nextcomp = g->curriculum[g->cur_act];
 			int i,j;
-			for(i=KI_rows; i>0; i--)//unterste Reihe auslassen
-				for(j=0; j<KI_cells-1;j++)//ganz linke Spalte auslassen
+			int cells = KI_cells;
+			int rows = KI_rows;
+			int grenze = 800;
+			if (*(g->element_pause) <= grenze) {
+				cells = 4;
+			}
+			for(i=rows; i>0; i--)//unterste Reihe auslassen
+				for(j=0; j<cells-1;j++)//ganz linke Spalte auslassen
 					if(g->comps[i][j]==-1&& g->comps[i-1][j+1]!=nextcomp && g->comps[i-1][j]!=nextcomp && nextx==-1 && g->comps[i-1][j]!=-1 && g->comps[i-1][j+1]!=-1)
 					{
 						nextx=j;
@@ -755,7 +760,32 @@ int auto_control(game_state_type *g, player_data_type *pl)
 						nexty=0;
 					}
 					j++;
+					if (j == cells) {
+						break;
+					}
 				}
+			}
+			if (*(g->element_pause) <= grenze) {
+				for(i=KI_rows; i>0; i--)//unterste Reihe auslassen
+						for(j=cells; j<KI_cells-1;j++)//ganz linke Spalte auslassen
+							if(g->comps[i][j]==-1&& g->comps[i-1][j+1]!=nextcomp && g->comps[i-1][j]!=nextcomp && nextx==-1 && g->comps[i-1][j]!=-1 && g->comps[i-1][j+1]!=-1)
+							{
+								nextx=j;
+								nexty=i;
+							}
+					if(nextx==-1)//die untereste Reihe fehlt noch, hier wird ein anderes System benÃ¶tigt: erst freie Position von rechts
+					{
+						int j=0;
+						while(nextx==-1)
+						{
+							if(g->comps[0][j]==-1)
+							{
+								nextx=j;
+								nexty=0;
+							}
+							j++;
+						}
+					}
 			}
 			g->just_thrown=0;
 			g->comps[nexty][nextx]=nextcomp;
@@ -766,32 +796,6 @@ int auto_control(game_state_type *g, player_data_type *pl)
 			//int nextypix=Win_floor_y-50-(nexty*50);
 				g->toRun = nextxpix; //needed_position(g, pl, nextxpix, nextypix);
 		}
-	} else { // Zweite KI: für höhere Geschwindigkeiten
-		if (g->just_thrown==1) {
-			int nextx=-1,nexty=0;
-			int nextcomp = g->curriculum[g->cur_act];
-			int i,j,k;
-			int cells = KI_cells - 5;
-			for(i=0; i<=KI_rows; i++)//unterste Reihe auslassen
-				for(j=0; j<cells;j++) {//ganz linke Spalte auslassen
-					if (i%2==1) {
-						k = cells - j;
-					} else {
-						k = j;
-					}
-					if(g->comps[i][k]==-1 && nextx==-1)
-					{
-						nextx=k;
-						nexty=i;
-					}
-				}
-			g->just_thrown=0;
-			g->comps[nexty][nextx]=nextcomp;
-			int nextxpix=920-(nextx*70)-(nexty*10);
-			int nextypix=Win_floor_y-50-(nexty*50);
-			g->toRun = needed_position(g, pl, nextxpix, nextypix);
-		}
-	}
 		int key=0;
 		if(g->toRun<pl->x)
 			key=-1;
