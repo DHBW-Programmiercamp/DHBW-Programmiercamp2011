@@ -318,12 +318,13 @@ void move_elements(game_state_type *g) {
 				g->element[i].countdown--;
 			}
 			else {
+				// move element outside screen
 				g->element[i].x = Win_width - Size_comp;
 				g->element[i].y = Win_height - Size_comp;
 				g->element[i].comp = 5;
 			}
 		}
-		else if(g->element[i].y<=Win_floor_y) { // Competence hits floor -> stop moving
+		else if(g->element[i].y<=Win_floor_y) { // Competence does not hit floor yet
 			// Check for collision with other elements
 			j=-1;
 			do {
@@ -348,13 +349,16 @@ void move_elements(game_state_type *g) {
 					g->all_points += g->element[k].points;  //count all points from cur_act
 				}
 			}
-
 		}
 		else if(g->element[i].x<MIN_PLAYER_X) {
 			explode(&g->element[i]);
 		}
 		else if (g->element[i].comp<4){
 			g->element[i].points=1;  //set groundelement.points 1
+			g->all_points = 0;
+			for (k=0;k<g->cur_act;k++) {
+				g->all_points += g->element[k].points;  //count all points from cur_act
+			}
 		}
 	}
 }
@@ -735,7 +739,7 @@ int auto_control(game_state_type *g, player_data_type *pl)
 			int i,j;
 			int cells = KI_cells;
 			int rows = KI_rows;
-			int grenze = 800;
+			int grenze = 600;
 			if (*(g->element_pause) <= grenze) {
 				cells = 4;
 			}
@@ -786,9 +790,16 @@ int auto_control(game_state_type *g, player_data_type *pl)
 			}
 			g->just_thrown=0;
 			g->comps[nexty][nextx]=nextcomp;
-			int nextxpix=920-(nextx*55)-(nexty*10);
+			int nextxpix;
+			if(nextx!=-1)
+				nextxpix=920-(nextx*55)-(nexty*10);
+			else
+				nextxpix=nextx;
 			if(nextxpix<MIN_PLAYER_X)
-				g->toRun = 800;
+			{
+				 srand(time(NULL));
+				 g->toRun = 700+rand()%200;
+			}
 			else
 			//int nextypix=Win_floor_y-50-(nexty*50);
 				g->toRun = nextxpix; //needed_position(g, pl, nextxpix, nextypix);
