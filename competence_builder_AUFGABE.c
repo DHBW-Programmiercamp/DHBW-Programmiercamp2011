@@ -648,6 +648,10 @@ int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
         	   *key_c=4;
         	   break;
 
+           case 'n':
+           	   *key_c=5;
+           	   break;
+
            case SDLK_ESCAPE:
         	   exit(0);
         	   break;
@@ -672,6 +676,7 @@ int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
         case 'f':
         case 'p':
         case 'r':
+        case 'n':
      	   *key_c=0;
      	   break;
 
@@ -813,13 +818,15 @@ int main(int argc, char *argv[])
 			else if(key_c==4) {
 				pause=0;
 			}
+			else if(key_c==5) {
+				break; // next level
+			}
 
 			if(pause==0) {
 				//Draw first
 				paint_all(&game, &player, key_x);
 
 				init_next_element(&game, &player);
-				// TODO: Next level?
 				//printf("%d %d\n",game.cur_act,game.element[game.cur_act-1].comp);
 
 				// move_elements is called ten times before the graphics are updated
@@ -846,11 +853,11 @@ int main(int argc, char *argv[])
 				paint_all(&game, &player, key_x);  // Update graphics
 				SDL_Delay(delay); // wait 20 ms
 			}
-			if (game.cur_act == game.cur_max[game.cur_level]) {
-				SDL_Delay(3000); // wait 20 ms
-				break;  //End if all blocks are shot
-
-			}
+//			if (game.cur_act == game.cur_max[game.cur_level]) {
+//				SDL_Delay(3000); // wait 20 ms
+//				break;  //End if all blocks are shot
+//
+//			}
 
 	} // End while-Schleife
 	free(game.curriculum);
