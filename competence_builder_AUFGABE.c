@@ -258,7 +258,7 @@ int check_collision(element_type *el1, element_type *el2, game_state_type *g)
 	// TODO: What about the case, where an element lands on two other elements?
 	int i;
 	char bridge;
-	const float buffer=2.0;
+	const float buffer=6.0;
 	element_type *el3;
 
 	if(el1->x + Size_comp > el2->x && el1->x + Size_comp - buffer < el2->x &&
