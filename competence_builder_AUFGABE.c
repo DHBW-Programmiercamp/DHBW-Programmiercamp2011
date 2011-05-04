@@ -544,6 +544,13 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 	// TODO (optional): Animate/move the teacher in interesting ways...
 	draw_tile(50, CHARACTER_FLOOR, 3 );
 
+	// Draw list of remaining competences in curriculum
+	int y_sitebar=Win_floor_y+Size_tile-Size_comp/2;
+	for(i = g->cur_act; i < g->cur_max[g->cur_level]; i++) {
+		draw_sitebar(0,y_sitebar,g->curriculum[i]);
+		y_sitebar-=Size_comp/2;
+	}
+
 	//Draw global score
 	//Go Numbers downwards
 	tmpscore = g->all_points;
@@ -553,7 +560,8 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 		tmpscore -= i*num;
 	}
 
-//	write_level((g->cur_level));
+	// ttf
+	//write_level((g->cur_level));
 
 	// Draw elements + points
 	for(i = 0; i < g->cur_act; i++) {
@@ -608,13 +616,8 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 
 
 
-	// TODO (optional): Draw list of remaining competences in curriculum
-	int y_sitebar=Win_floor_y-Size_comp/2;
-	for(i = g->cur_act + 1; i < g->cur_max[g->cur_level]; i++) {
-		draw_sitebar(0,y_sitebar,g->curriculum[i]);
-		y_sitebar-=Size_comp/2;
-	}
 	
+
 	// TODO (optional): Draw score
 	
 
