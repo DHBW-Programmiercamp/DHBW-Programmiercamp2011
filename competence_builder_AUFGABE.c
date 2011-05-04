@@ -198,16 +198,6 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 	if(g->element_countdown == 0 && g->cur_act!=g->cur_max[(g->cur_level)])//Soll er gerade werfen und sind noch Elemente zum Werfen da
 	{
 		element_type el;
-		g->all_points = 0;
-		for (i=0; i <= g->cur_act; i++){
-
-			g->all_points += g->element[i].points;
-			if(g->element[i].points>10) {
-				printf("points>10: %d\n",i);
-			}
-
-		}
-
 
 		//el=(element_type *)malloc(sizeof(element_type));
 		g->element_countdown = g->element_pause[(g->cur_level)] / 20;
@@ -271,34 +261,39 @@ int check_collision(element_type *el1, element_type *el2, game_state_type *g)
 	else if(el1->x + Size_comp > el2->x && el1->x < el2->x + Size_comp) {
 		if(el1->y + Size_comp > el2->y && el1->y + Size_comp < el2->y + buffer) {
 			// check if element is not more than half on the element below
-			if(el1->x + Size_comp/2 < el2->x || el1->x > el2->x + Size_comp/2) {
+
 				// find another block below (bridge between two blocks)
 				i=0;
 				bridge=0;
-				while(i<=g->cur_act && bridge==0){
+				while(i<g->cur_act && bridge==0){
 					if ((el1->x + Size_comp >= g->element[i].x) &&
 							(el1->x <= g->element[i].x + Size_comp) &&
+							el1->y + Size_comp > g->element[i].y &&
+							el1->y + Size_comp < g->element[i].y + buffer &&
 							&(g->element[i])!= el1 && &(g->element[i])!= el2){
 						bridge=1;
 						el3=&(g->element[i]);
 					}
 					i++;
 				}
-				if (!bridge) explode(el1);
-				else {
+
+				if (bridge) {
 					if(el1->points==0) {
 						if(el1->comp!=el2->comp) el1->points+=el2->points;
 						if(el1->comp!=el3->comp) el1->points+=el3->points;
 					}
 					return 2;
 				}
-			}
-			else {
-				if(el1->comp!=el2->comp  && el1->points==0) el1->points=el2->points;
-				if(el1->comp!=el2->comp  && el1->points==0 && el2->points==0) el1->points=1;
-				return 3;
-			}
-
+				else {
+					if(el1->x + Size_comp/2 < el2->x || el1->x > el2->x + Size_comp/2) {
+						explode(el1);
+					}
+					else {
+						if(el1->comp!=el2->comp  && el1->points==0) el1->points=el2->points;
+						if(el1->comp!=el2->comp  && el1->points==0 && el2->points==0) el1->points=1;
+						return 3;
+					}
+				}
 		}
 		else if(el1->y < el2->y + Size_comp + buffer && el1->y > el2->y + Size_comp) {
 			explode(el1);
@@ -312,7 +307,7 @@ int check_collision(element_type *el1, element_type *el2, game_state_type *g)
 // Update/move the existing competence element(s)
 void move_elements(game_state_type *g)
 {
-	int i,j,coll;
+	int i,j,coll,k;
 	//printf("ping\n");
 	for(i=0;i<g->cur_act;i++) {
 		if(g->element[i].comp==4)
@@ -346,6 +341,15 @@ void move_elements(game_state_type *g)
 				g->element[i].vy+=Gravity;   // Gravity affects vy
 				g->element[i].y+=g->element[i].vy;     // change position based on speed
 				g->element[i].x+=g->element[i].vx;
+			}
+			else {
+				g->all_points = 0;
+				for (k=0;k<g->cur_act;k++){
+					g->all_points += g->element[k].points;
+					if(g->element[k].points>10) {
+						printf("points>10: %d %d %d\n",k,g->element[k].points,g->element[k].comp);
+					}
+				}
 			}
 
 		}
