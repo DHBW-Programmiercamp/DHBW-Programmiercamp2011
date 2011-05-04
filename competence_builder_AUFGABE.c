@@ -29,7 +29,7 @@
 SDL_Surface *graphics, *screen;  // Graphics data, screen data
 
 // Wenn die Autimatik l�uft
-int auto_control_val = 0;
+int auto_control_val = 1;
 
 // Definition of sizes of Graphic elements, according to graphics in competence_builder.bmp
 const int Size_comp=50;                       // Size (x==y) of competence element
@@ -859,7 +859,7 @@ int main(int argc, char *argv[])
 
 				// Wenn die Automatik l�uft sich dieser auch bedienen
 				// Wenn die Automatik l�uft sich dieser auch bedienen
-		if (1)//auto_control_val) {
+		if (auto_control_val) {
 			key_x = 0;
 			key_x=auto_control(&game, &player); // use only for 'robot player'
 		}
