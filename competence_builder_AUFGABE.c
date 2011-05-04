@@ -28,8 +28,8 @@
 // Graphics data - SDL variables
 SDL_Surface *graphics, *screen;  // Graphics data, screen data
 
-// Wenn die Autimatik l�uft
-int auto_control_val = 1;
+// Auto-Control
+int auto_control_val = 1;	//KI ist aktiviert
 
 // Definition of sizes of Graphic elements, according to graphics in competence_builder.bmp
 const int Size_comp=50;                       // Size (x==y) of competence element
@@ -46,39 +46,36 @@ const float Player_v_x=8.0f;                 // Player speed
 const float Gravity=0.03f;                   // Gravity 
 
 
-// Important data structures, TODO: change/extend if needed
-
 // Competence element
 typedef struct {
-   float x, y;            // Position
-   float vx, vy;          // Speed
-   char comp;             // Type of competence 0 - 3,  crash=4, deleted 5
-   unsigned short int  points;	  //Points per elemnt
-   unsigned short int  countdown;	  //counts down to 0 if a block explodes -> explode vanish
-   // TODO: Extend if needed
+   float x, y;            				// Position
+   float vx, vy;         				// Speed
+   char comp;            				// Type of competence 0 - 3,  crash=4, deleted 5
+   unsigned short int  points;	  		//Points per element
+   unsigned short int  countdown;	    //counts down to 0 if a block explodes -> explode vanish
 } element_type;
 
 // Player data
 typedef struct {
 	float x, y;           // Position
-	int steps;            // TODO: You can use this for animating the moving player
+	int steps;            // Steps for Player Animation
 } player_data_type;
 
-// Current game information/state
+// Current game information/state - current level data
 typedef struct {
 	// Data to be read from file
 	int levels;              // Number of game levels
-	int *element_pause;       // Time interval between elements
-	int *cur_max;             // Number of curriculum elements - Array für verschiedene Levels
+	int *element_pause;       // Array (for levels) of time interval between elements
+	int *cur_max;             // Array (for levels) of number of curriculum elements
 	char *curriculum;        // Array of competence numbers (0-3)
 	  
 	// Current game state
-	element_type *element;   // array of competence elements -> TODO: use malloc
+	element_type *element;   // array of competence elements
 	int element_countdown;   // Countdown until next element is launched
 	int cur_act;             // Current element 
 	unsigned int all_points; // Gesamtpunktzahl
 
-	int cur_level;              // Current level
+	int cur_level;           // Current level
 
 	int just_thrown;		//wichtig für die KI
 	int toRun;				//wohin die KI rennen muss
@@ -103,10 +100,11 @@ int digit_count(int number)
  */
 
 // Load lecture/level plan from file
-int load_game_data_info(game_state_type *g, char *filename)  //Data Info laden
+//Load all level definition data
+int load_game_data_info(game_state_type *g, char *filename)
 {
 	FILE *file;
-	short int i_level=0; 	// Zähler für das Einlesen des Curriculums
+	short int i_level=0; 	//  Counter for levels
 
     // Open the file for reading
     file=fopen(filename,"r"); 
@@ -115,22 +113,20 @@ int load_game_data_info(game_state_type *g, char *filename)  //Data Info laden
         return -1;
     }
     
-    // TODO: Read level data, allocate memory if needed
-    
-	fscanf(file,"%d",&g->levels);		// Lese aus File erste Zahl: Level Anzahl
+	fscanf(file,"%d",&g->levels);		// Read numbers of game levels
 
-	g->cur_max = (int *)malloc(sizeof(int) * g->levels);  //Speicher für Array curriculum allokieren
-	g->element_pause = (int *)malloc(sizeof(int) * g->levels);  //Speicher für Array curriculum allokieren
+	g->cur_max = (int *)malloc(sizeof(int) * g->levels);  //Malloc to generate Array for cur_max
+	g->element_pause = (int *)malloc(sizeof(int) * g->levels);  //Malloc to generate Array for element_pause
 
 	for(i_level=0; i_level < g->levels; i_level++){
-		fscanf(file,"%d %d ",&(g->cur_max[i_level]), &(g->element_pause[i_level]) );		// Lese aus File Anzahl Blöcke, Wartezeit für Block
+		fscanf(file,"%d %d ",&(g->cur_max[i_level]), &(g->element_pause[i_level]) );		// Read for each level: cur_max and element_pause
 	}
     fclose(file);    // close file
     return 0;
 }
 
-// Blockladen Function
-int load_game_data(game_state_type *g, char *filename) // Blöcke für jedes Level einzeln laden
+//Load specific level data
+int load_game_data(game_state_type *g, char *filename)
 {
 	FILE *file;
 	short int cur_count=0; 	// Zähler für das Einlesen des Curriculums
@@ -171,8 +167,8 @@ int load_game_data(game_state_type *g, char *filename) // Blöcke für jedes Lev
 void init_level(game_state_type *g, player_data_type *p )
 {
 
-	g->element=(element_type *)malloc(sizeof(element_type)*g->cur_max[(g->cur_level)]);   // Simple example for one element, TODO: need to change this COMPLETED
-	g->element_countdown = g->element_pause[(g->cur_level)] / 20; //1200ms /20ms (20ms braucht ca. ein programmdurchlauf)
+	g->element=(element_type *)malloc(sizeof(element_type)*g->cur_max[(g->cur_level)]);   // Malloc Array for element
+	g->element_countdown = g->element_pause[(g->cur_level)] / 20; //1200ms /20ms (20ms braucht ca. ein Programmdurchlauf)
 	g->cur_act=0;
 	g->just_thrown=1;
 	g->all_points=0;
@@ -192,7 +188,6 @@ void init_level(game_state_type *g, player_data_type *p )
  ***************************************************************************/
 void init_next_element(game_state_type *g, player_data_type *pl)
 {
-	// TO DO: ...
 	// TO DO: Initialize a new competence element, when/before it is thrown by the teacher
 	// TO DO: Check if there are further elements or whether the level is completed
 	// TO DO: Keep in mind the correct waiting time between elements
@@ -225,9 +220,6 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 	// R * g = v2 * sin b * cos b
 	// Steigzeit: v0/g
 }
-
-
-
 
 void explode(element_type *el) {
 	el->comp = 4;
@@ -785,8 +777,11 @@ int auto_control(game_state_type *g, player_data_type *pl)
 			g->just_thrown=0;
 			g->comps[nexty][nextx]=nextcomp;
 			int nextxpix=920-(nextx*55)-(nexty*10);
-			int nextypix=Win_floor_y-50-(nexty*50);
-			g->toRun = needed_position(g, pl, nextxpix, nextypix);
+			if(nextxpix<MIN_PLAYER_X)
+				g->toRun = 800;
+			else
+			//int nextypix=Win_floor_y-50-(nexty*50);
+				g->toRun = nextxpix; //needed_position(g, pl, nextxpix, nextypix);
 		}
 	} else { // Zweite KI: f�r h�here Geschwindigkeiten
 		if (g->just_thrown==1) {
