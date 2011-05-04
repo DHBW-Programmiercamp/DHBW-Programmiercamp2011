@@ -177,8 +177,7 @@ int load_game_data_random(game_state_type *g) {
     g->cur_max = (int *)malloc(sizeof(int));  //Malloc to generate Array for cur_max
     g->cur_max[0] = (rand()%100 + 1);
 	g->element_pause = (int *)malloc(sizeof(int));  //Malloc to generate Array for element_pause
- //   g->element_pause[0] = ((rand()%15+5) * 100);
-    g->element_pause[0] = 1800;
+    g->element_pause[0] = ((rand()%15+5) * 100);
 
 	g->curriculum = (char *)malloc(sizeof(char) * g->cur_max[0]);  //Speicher für Array curriculum allokieren
 
