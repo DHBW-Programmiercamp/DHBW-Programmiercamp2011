@@ -162,6 +162,9 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 		for (i=0; i <= g->cur_act; i++){
 
 			g->all_points += g->element[i].points;
+			if(g->element[i].points>10) {
+				printf("points>10: %d\n",i);
+			}
 
 		}
 
@@ -311,7 +314,6 @@ void move_elements(game_state_type *g)
 		}
 		else if (g->element[i].comp<4){
 			g->element[i].points=1;
-			//g->all_points+=1;
 		}
 	}
 
@@ -708,7 +710,6 @@ int main(int argc, char *argv[])
 
     load_game_data(&game, "competence_builder.txt");
     init_level(&game, &player);
-    game.element_pause=500;
         
     // TODO optional: show_splash_screen, select player, ...
     
