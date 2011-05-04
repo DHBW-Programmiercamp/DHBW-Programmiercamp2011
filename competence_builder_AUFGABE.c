@@ -379,7 +379,7 @@ int init_SDL() {
         printf("Unable to init video: %s\n", SDL_GetError()); exit(1);
     }	
 	// Load graphics
-	SDL_WM_SetCaption("Tux on the fly: Competence Builder", "Competence Builder"); //set Programmtitle
+	SDL_WM_SetCaption("Tux on the fly: Competence Builder", 0); //set Programmtitle
 	SDL_WM_SetIcon(SDL_LoadBMP("Tux_icon.bmp"), 0); //set BMP as Icon
 	graphics = SDL_LoadBMP("competence_builder.bmp");
 	menu_bg = SDL_LoadBMP("menu_texture.bmp");
