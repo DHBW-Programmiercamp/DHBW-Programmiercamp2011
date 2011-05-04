@@ -21,7 +21,7 @@
 //Set player 20px above REAL floor
 #define CHARACTER_FLOOR Win_floor_y
 #define KI_rows 12
-#define KI_cells 20
+#define KI_cells 14
 
 // Graphics data - SDL variables
 SDL_Surface *graphics, *screen;  // Graphics data, screen data
@@ -172,13 +172,14 @@ void init_level(game_state_type *g, player_data_type *p )
 	g->all_points=0;
 	g->toRun=900;
 
-	// Init player position
-	p->x=Win_width-Size_tile;
-	p->y=(float)CHARACTER_FLOOR;
 	int i,j;
 	for(i=0; i<KI_rows; i++)
 		for(j=0; j<KI_cells;j++)
 			g->comps[i][j]=-1;
+
+	// Init player position
+	p->x=Win_width-Size_tile;
+	p->y=(float)CHARACTER_FLOOR;
 }
 
 /***************************************************************************
@@ -338,9 +339,6 @@ void move_elements(game_state_type *g)
 				g->all_points = 0;
 				for (k=0;k<g->cur_act;k++){
 					g->all_points += g->element[k].points;
-					if(g->element[k].points>10) {
-						printf("points>10: %d %d %d\n",k,g->element[k].points,g->element[k].comp);
-					}
 				}
 			}
 
@@ -508,7 +506,14 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 		draw_tile(x, Win_floor_y, TILE_TABLE);
 
 	//Draw teacher
-	draw_tile(50, CHARACTER_FLOOR, 3 );
+
+	// Animate/move the teacher in interesting ways...
+	if(g->element_countdown<10) {
+		draw_tile(50, CHARACTER_FLOOR, 2 );
+	}
+	else {
+		draw_tile(50, CHARACTER_FLOOR, 3 );
+	}
 
 	// Draw list of remaining competences in curriculum
 	int y_sitebar=Win_floor_y+Size_tile-Size_comp/2;
@@ -563,7 +568,8 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 	}
 
 	//Draw player
-	draw_tile((int)pl->x, CHARACTER_FLOOR, (key_x == 0 ? 0 : 1));
+
+	draw_tile((int)pl->x, CHARACTER_FLOOR, (key_x == 0 ? 1 : (pl->steps%4==0 ? 1 : 0)));
 
 	SDL_Flip(screen);  // Refresh screen (double buffering)
 }
@@ -631,7 +637,7 @@ int auto_control(game_state_type *g, player_data_type *pl)
 	// Generate player motions such that it collects competence
 
 	// erste KI: F�r niedrigere Geschwindigkeiten
-	if (g->element_pause > 700) {
+	if (*(g->element_pause) > 700) {
 
 		/**Comps:
 		 * speichert wie die existierenden Comps zueinander stehen (sollten)
@@ -680,7 +686,30 @@ int auto_control(game_state_type *g, player_data_type *pl)
 				g->toRun = nextxpix; //needed_position(g, pl, nextxpix, nextypix);
 		}
 	} else { // Zweite KI: f�r h�here Geschwindigkeiten
-
+		if (g->just_thrown==1) {
+			int nextx=-1,nexty=0;
+			int nextcomp = g->curriculum[g->cur_act];
+			int i,j,k;
+			int cells = KI_cells - 5;
+			for(i=0; i<=KI_rows; i++)//unterste Reihe auslassen
+				for(j=0; j<cells;j++) {//ganz linke Spalte auslassen
+					if (i%2==1) {
+						k = cells - j;
+					} else {
+						k = j;
+					}
+					if(g->comps[i][k]==-1 && nextx==-1)
+					{
+						nextx=k;
+						nexty=i;
+					}
+				}
+			g->just_thrown=0;
+			g->comps[nexty][nextx]=nextcomp;
+			int nextxpix=920-(nextx*70)-(nexty*10);
+			int nextypix=Win_floor_y-50-(nexty*50);
+			g->toRun = needed_position(g, pl, nextxpix, nextypix);
+		}
 	}
 		int key=0;
 		if(g->toRun<pl->x)
@@ -773,6 +802,8 @@ int main(int argc, char *argv[])
 				 */
 				if ((player.x + Size_tile <= Win_width && player.x >= MIN_PLAYER_X) || (player.x + Size_tile > Win_width && key_x < 0) || (player.x < MIN_PLAYER_X && key_x > 0)) {
 					player.x+=key_x*Player_v_x;    // Calculate new x-position
+					player.steps++;
+					if(player.steps>100000) player.steps=0;
 				}
 
 				paint_all(&game, &player, key_x);  // Update graphics
