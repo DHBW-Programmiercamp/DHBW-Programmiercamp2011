@@ -521,7 +521,7 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
     if(!g)
     	return;
 	
-    int x, y, i, c, tmpscore, num;
+    int x, y, i, tmpscore, num;
     char nl;
 
     //Draw color background
@@ -881,11 +881,9 @@ int main(int argc, char *argv[])
 //
 //			}
 
-	} // End while-Schleife
-	free(game.curriculum);
-} //End for-Schleife
-
-    //TODO DRAW END SCORE
-
-
+		} // End while-Schleife
+		free(game.curriculum);
+    }
+    return 0;
+}
 
