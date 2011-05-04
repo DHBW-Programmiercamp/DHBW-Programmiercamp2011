@@ -131,21 +131,21 @@ int load_game_data_info(game_state_type *g, char *filename)  //Data Info laden
 }
 
 // Blockladen Function
-	int load_game_data(game_state_type *g, char *filename) // Blöcke für jedes Level einzeln laden
-	{
-		FILE *file;
-		short int cur_count=0; 	// Zähler für das Einlesen des Curriculums
-		int help2=0, i=0; //Zwischenspiecher um übersprungene Daten ins Leere laufen zu lassen  (Funktion für fscanf fehlt: Springe zu einer bestimmten Zahl)
-	    int help=0;
+int load_game_data(game_state_type *g, char *filename) // Blöcke für jedes Level einzeln laden
+{
+	FILE *file;
+	short int cur_count=0; 	// Zähler für das Einlesen des Curriculums
+	int help2=0, i=0; //Zwischenspiecher um übersprungene Daten ins Leere laufen zu lassen  (Funktion für fscanf fehlt: Springe zu einer bestimmten Zahl)
+	int help=0;
 
-		// Open the file for reading
-	    file=fopen(filename,"r");
-	    if(file==NULL) {
-	        printf("Error: can't open file.\n");
-	        return -1;
-	    }
+	// Open the file for reading
+	file=fopen(filename,"r");
+	if(file==NULL) {
+		printf("Error: can't open file.\n");
+		return -1;
+	}
 
-	g->curriculum = (char *)malloc(sizeof(char) * g->cur_max[(g->cur_level)]);  //Speicher für Array curriculum allokieren
+	g->curriculum = (char *) malloc(sizeof(char) * g->cur_max[(g->cur_level)]);  //Speicher für Array curriculum allokieren
 
 	help2 = 1 + 2 * (g->levels);
 	for(i=0;i < g->cur_level;i++){
@@ -786,10 +786,10 @@ int main(int argc, char *argv[])
 	
 	init_SDL();
 
-    load_game_data(&game, "competence_builder.txt");
-    init_level(&game, &player);
+    load_game_data_info(&game, "competence_builder.txt");
+    //init_level(&game, &player);
     //game.element_pause=500;
-
+    printf("test");
         
     // TODO optional: show_splash_screen, select player, ...
     
