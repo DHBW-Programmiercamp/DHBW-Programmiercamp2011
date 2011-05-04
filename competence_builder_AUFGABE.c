@@ -540,10 +540,6 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 	for(; x < Win_width; x += Size_tile)
 		draw_tile(x, Win_floor_y, TILE_TABLE);
 
-	//Draw player
-	// TODO: Dynamic position, if jumping
-	draw_tile((int)pl->x, CHARACTER_FLOOR, (key_x == 0 ? 0 : 1));
-
 	//Draw teacher
 	// TODO (optional): Animate/move the teacher in interesting ways...
 	draw_tile(50, CHARACTER_FLOOR, 3 );
@@ -594,6 +590,10 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 			//</HackyAsHell>
 		}
 	}
+
+	//Draw player
+	// TODO: Dynamic position, if jumping
+	draw_tile((int)pl->x, CHARACTER_FLOOR, (key_x == 0 ? 0 : 1));
 
 
 
@@ -662,6 +662,10 @@ int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
         	   *key_c=4;
         	   break;
 
+           case 'n':
+           	   *key_c=5;
+           	   break;
+
            case SDLK_ESCAPE:
         	   exit(0);
         	   break;
@@ -686,6 +690,7 @@ int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
         case 'f':
         case 'p':
         case 'r':
+        case 'n':
      	   *key_c=0;
      	   break;
 
@@ -703,21 +708,26 @@ int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
  ********************************************************************/
 int needed_position(game_state_type *g, player_data_type *pl, int x, int y)//calculates position of the student to place an object perfectly
 {
-	/*
+/*
 	int foundfirst=0;
 	float tempx, tempy;
 	float tempvx, tempvy;
 	tempx=(float)Element_start_x;
 	tempy=(float)Win_floor_y;
-	tempvx=-(float)sqrt(tempy * 2. * Gravity);
-	tempvy=(float)((tempx-tempx)/(-tempvy/Gravity*2.));//nur vor dem Abwurf erlaubt
+	tempvy=-(float)sqrt(tempy * 2. * Gravity);
+	tempvx=(float)((tempx-tempx)/(-tempvy/Gravity*2.));//nur vor dem Abwurf erlaubt
 	float precision = 5.0;
 	while (x<tempx+precision && x>tempx-precision && y<tempy+precision && y>tempy+precision)
 	{
 		tempvy+=Gravity;   // Gravity affects vy
 		tempy+=tempvy;     // change position based on speed
 		tempx+=tempvx;
-	}*/
+	}
+	el.x=(float)Element_start_x;
+	el.y=(float)Win_floor_y;
+	el.vy=-(float)sqrt(el.y * 2. * Gravity);
+	el.vx=(float)((pl->x-el.x)/(-el.vy/Gravity*2.));*/
+	return x;
 }
 
 void set_window_title(char *title) {
@@ -827,13 +837,15 @@ int main(int argc, char *argv[])
 			else if(key_c==4) {
 				pause=0;
 			}
+			else if(key_c==5) {
+				break; // next level
+			}
 
 			if(pause==0) {
 				//Draw first
 				paint_all(&game, &player, key_x);
 
 				init_next_element(&game, &player);
-				// TODO: Next level?
 				//printf("%d %d\n",game.cur_act,game.element[game.cur_act-1].comp);
 
 				// move_elements is called ten times before the graphics are updated
@@ -844,7 +856,7 @@ int main(int argc, char *argv[])
 
 				// Wenn die Automatik l�uft sich dieser auch bedienen
 				// Wenn die Automatik l�uft sich dieser auch bedienen
-		if (auto_control_val) {
+		if (1)//auto_control_val) {
 			key_x = 0;
 			key_x=auto_control(&game, &player); // use only for 'robot player'
 		}
@@ -860,11 +872,11 @@ int main(int argc, char *argv[])
 				paint_all(&game, &player, key_x);  // Update graphics
 				SDL_Delay(delay); // wait 20 ms
 			}
-			if (game.cur_act == game.cur_max[game.cur_level]) {
-				SDL_Delay(3000); // wait 20 ms
-				break;  //End if all blocks are shot
-
-			}
+//			if (game.cur_act == game.cur_max[game.cur_level]) {
+//				SDL_Delay(3000); // wait 20 ms
+//				break;  //End if all blocks are shot
+//
+//			}
 
 	} // End while-Schleife
 	free(game.curriculum);
@@ -873,5 +885,4 @@ int main(int argc, char *argv[])
     //TODO DRAW END SCORE
 
 
-	return 0;
-    }
+
