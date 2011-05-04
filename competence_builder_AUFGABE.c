@@ -23,7 +23,7 @@
 //Set player 20px above REAL floor
 #define CHARACTER_FLOOR Win_floor_y
 #define KI_rows 12
-#define KI_cells 20
+#define KI_cells 14
 
 // Graphics data - SDL variables
 SDL_Surface *graphics, *screen;  // Graphics data, screen data
@@ -743,7 +743,7 @@ int auto_control(game_state_type *g, player_data_type *pl)
 	// Generate player motions such that it collects competence
 
 	// erste KI: Für niedrigere Geschwindigkeiten
-	if (g->element_pause > 700) {
+	if (*(g->element_pause) > 700) {
 
 		/**Comps:
 		 * speichert wie die existierenden Comps zueinander stehen (sollten)
@@ -789,7 +789,29 @@ int auto_control(game_state_type *g, player_data_type *pl)
 			g->toRun = needed_position(g, pl, nextxpix, nextypix);
 		}
 	} else { // Zweite KI: für höhere Geschwindigkeiten
-
+		if (g->just_thrown==1) {
+			int nextx=-1,nexty=0;
+			int nextcomp = g->curriculum[g->cur_act];
+			int i,j,k;
+			for(i=0; i<=KI_rows; i++)//unterste Reihe auslassen
+				for(j=0; j<KI_cells;j++) {//ganz linke Spalte auslassen
+					if (i%2==1) {
+						k = KI_cells - j;
+					} else {
+						k = j;
+					}
+					if(g->comps[i][k]==-1 && nextx==-1)
+					{
+						nextx=k;
+						nexty=i;
+					}
+				}
+			g->just_thrown=0;
+			g->comps[nexty][nextx]=nextcomp;
+			int nextxpix=920-(nextx*55)-(nexty*10);
+			int nextypix=Win_floor_y-50-(nexty*50);
+			g->toRun = needed_position(g, pl, nextxpix, nextypix);
+		}
 	}
 		int key=0;
 		if(g->toRun<pl->x)
