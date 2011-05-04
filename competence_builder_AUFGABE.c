@@ -228,33 +228,26 @@ void explode(element_type *el) {
 	el->points=0;
 }
 
-// TODO (optional/suggestion):
-//        Write a function that checks whether/how two competence elements are colliding
-//        Feel free to use the TODO suggestions - or completely ignore them, if you have your own ideas
-// return:
-// 0 no coll
-// 1 side coll
-// 2 bridge
-// 3 on top
+/********************************************************************
+ * collision check  and set points                                  *
+ * return:     //0 no coll     //2 bridge     //3 on top            *
+ ********************************************************************/
+
 int check_collision(element_type *el1, element_type *el2, game_state_type *g)
 {
-	// TODO: maybe it helps to distinguish between the current, flying element and the others
-	// TODO: overlap between elements?
-	// TODO: Reflection on the side?
-	// TODO: landing/contact on top?
-	// TODO: What about the case, where an element lands on two other elements?
 	int i;
 	char bridge;
 	const float buffer=6.0;
 	element_type *el3;
 
+	//sidecollision check
 	if(el1->x + Size_comp > el2->x && el1->x + Size_comp - buffer < el2->x &&
 			el1->y + Size_comp > el2->y && el1->y < el2->y + Size_comp) {
 		el1->vx=(-0.9)*el1->vx;
 	}
+	//topcollision check
 	else if(el1->x + Size_comp > el2->x && el1->x < el2->x + Size_comp) {
 		if(el1->y + Size_comp > el2->y && el1->y + Size_comp < el2->y + buffer) {
-			// check if element is not more than half on the element below
 
 				// find another block below (bridge between two blocks)
 				i=0;
@@ -276,16 +269,17 @@ int check_collision(element_type *el1, element_type *el2, game_state_type *g)
 						if(el1->comp!=el2->comp) el1->points+=el2->points;
 						if(el1->comp!=el3->comp) el1->points+=el3->points;
 					}
-					return 2;
+					return 2; //top collision
 				}
 				else {
+					// check if element is not more than half on the element below
 					if(el1->x + Size_comp/2 < el2->x || el1->x > el2->x + Size_comp/2) {
 						explode(el1);
 					}
 					else {
 						if(el1->comp!=el2->comp  && el1->points==0) el1->points=el2->points;
 						if(el1->comp!=el2->comp  && el1->points==0 && el2->points==0) el1->points=1;
-						return 3;
+						return 3; //bridge collision
 					}
 				}
 		}
@@ -295,10 +289,12 @@ int check_collision(element_type *el1, element_type *el2, game_state_type *g)
 	}
 
 
-	return 0; // Maybe return some indicator regarding the type of collision?
+	return 0; //no collision
 }
 
-// Update/move the existing competence element(s)
+/********************************************************************
+ * Update/move the existing competence element(s)                   *
+ ********************************************************************/
 void move_elements(game_state_type *g)
 {
 	int i,j,coll,k;
@@ -338,7 +334,7 @@ void move_elements(game_state_type *g)
 			else {
 				g->all_points = 0;
 				for (k=0;k<g->cur_act;k++){
-					g->all_points += g->element[k].points;
+					g->all_points += g->element[k].points;  //count all points from cur_act
 				}
 			}
 
@@ -347,7 +343,7 @@ void move_elements(game_state_type *g)
 			explode(&g->element[i]);
 		}
 		else if (g->element[i].comp<4){
-			g->element[i].points=1;
+			g->element[i].points=1;  //set groundelement.points 1
 		}
 	}
 
