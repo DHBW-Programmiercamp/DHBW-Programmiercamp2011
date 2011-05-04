@@ -131,7 +131,7 @@ int load_game_data_info(game_state_type *g, char *filename)  //Data Info laden
 		FILE *file;
 		short int cur_count=0; 	// Zähler für das Einlesen des Curriculums
 		int help2=0, i=0; //Zwischenspiecher um übersprungene Daten ins Leere laufen zu lassen  (Funktion für fscanf fehlt: Springe zu einer bestimmten Zahl)
-	    char help=0;
+	    int help=0;
 
 		// Open the file for reading
 	    file=fopen(filename,"r");
