@@ -7,7 +7,6 @@
 // Header files
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <math.h>
 #ifdef _WIN32 // _WIN32 is defined by many compilers available for the Windows operating system, but not by others.
 #include "C:\MinGW\include\SDL\SDL.h"
@@ -504,6 +503,16 @@ void draw_blockscore(int x, int y, int number)
 	SDL_BlitSurface(graphics, &src, screen, &dest);
 }
 
+void draw_sitebar(int x, int y, int number)
+{
+	SDL_Rect src, dest;
+
+	src.w=src.h=dest.w=dest.h=Size_comp/2;
+	src.x = number*Size_comp+Size_comp/2;	src.y = Size_tile;
+	dest.x = x;	dest.y = y;
+	SDL_BlitSurface(graphics, &src, screen, &dest);
+}
+
 /*******************************************************************
  * Refresh the screen and draw all graphics                        *
  *******************************************************************/
@@ -600,6 +609,11 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 
 
 	// TODO (optional): Draw list of remaining competences in curriculum
+	int y_sitebar=Win_floor_y-Size_comp/2;
+	for(i = g->cur_act + 1; i < g->cur_max[g->cur_level]; i++) {
+		draw_sitebar(0,y_sitebar,g->curriculum[i]);
+		y_sitebar-=Size_comp/2;
+	}
 	
 	// TODO (optional): Draw score
 	
