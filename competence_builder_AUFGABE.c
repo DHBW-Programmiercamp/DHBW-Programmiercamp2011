@@ -689,21 +689,26 @@ int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
  ********************************************************************/
 int needed_position(game_state_type *g, player_data_type *pl, int x, int y)//calculates position of the student to place an object perfectly
 {
-	/*
+/*
 	int foundfirst=0;
 	float tempx, tempy;
 	float tempvx, tempvy;
 	tempx=(float)Element_start_x;
 	tempy=(float)Win_floor_y;
-	tempvx=-(float)sqrt(tempy * 2. * Gravity);
-	tempvy=(float)((tempx-tempx)/(-tempvy/Gravity*2.));//nur vor dem Abwurf erlaubt
+	tempvy=-(float)sqrt(tempy * 2. * Gravity);
+	tempvx=(float)((tempx-tempx)/(-tempvy/Gravity*2.));//nur vor dem Abwurf erlaubt
 	float precision = 5.0;
 	while (x<tempx+precision && x>tempx-precision && y<tempy+precision && y>tempy+precision)
 	{
 		tempvy+=Gravity;   // Gravity affects vy
 		tempy+=tempvy;     // change position based on speed
 		tempx+=tempvx;
-	}*/
+	}
+	el.x=(float)Element_start_x;
+	el.y=(float)Win_floor_y;
+	el.vy=-(float)sqrt(el.y * 2. * Gravity);
+	el.vx=(float)((pl->x-el.x)/(-el.vy/Gravity*2.));*/
+	return x;
 }
 
 void set_window_title(char *title) {
@@ -830,7 +835,7 @@ int main(int argc, char *argv[])
 
 				// Wenn die Automatik l�uft sich dieser auch bedienen
 				// Wenn die Automatik l�uft sich dieser auch bedienen
-		if (auto_control_val) {
+		if (1)//auto_control_val) {
 			key_x = 0;
 			key_x=auto_control(&game, &player); // use only for 'robot player'
 		}
@@ -859,5 +864,4 @@ int main(int argc, char *argv[])
     //TODO DRAW END SCORE
 
 
-	return 0;
-    }
+
