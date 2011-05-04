@@ -20,6 +20,8 @@
 #define MIN_PLAYER_X  2*Size_tile
 //Set player 20px above REAL floor
 #define CHARACTER_FLOOR Win_floor_y
+#define KI_rows 12
+#define KI_cells 20
 
 // Graphics data - SDL variables
 SDL_Surface *graphics, *screen;  // Graphics data, screen data
@@ -75,7 +77,7 @@ typedef struct {
 	unsigned int all_points; // Gesamtpunktzahl
 	int just_thrown;		//wichtig für die KI
 	int toRun;				//wohin die KI rennen muss
-	short comps[9][10]; // für die KI
+	short comps[KI_rows][KI_cells]; // für die KI
 } game_state_type;
 
 
@@ -132,7 +134,7 @@ void init_level(game_state_type *g, player_data_type *p )
 	g->element=(element_type *)malloc(sizeof(element_type)*g->cur_max);   // Simple example for one element, TODO: need to change this COMPLETED
 	g->element_countdown = g->element_pause / 20; //1200ms /20ms (20ms braucht ca. ein programmdurchlauf)
 	g->cur_act=0;
-	g->just_thrown=0;
+	g->just_thrown=1;
 	g->all_points=0;
 	g->toRun=900;
 
@@ -140,8 +142,8 @@ void init_level(game_state_type *g, player_data_type *p )
 	p->x=Win_width-Size_tile;
 	p->y=(float)CHARACTER_FLOOR;
 	int i,j;
-	for(i=0; i<9; i++)
-		for(j=0; j<10;j++)
+	for(i=0; i<KI_rows; i++)
+		for(j=0; j<KI_cells;j++)
 			g->comps[i][j]=-1;
 }
 
@@ -646,8 +648,8 @@ int auto_control(game_state_type *g, player_data_type *pl)
 		int nextx=-1,nexty=0;
 		int nextcomp = g->curriculum[g->cur_act];
 		int i,j;
-		for(i=9; i>0; i--)//unterste Reihe auslassen
-			for(j=9; j>=0;j--)//ganz linke Spalte auslassen
+		for(i=KI_rows; i>0; i--)//unterste Reihe auslassen
+			for(j=0; j<KI_cells-1;j++)//ganz linke Spalte auslassen
 				//if(g->comps[i][j]==-1)&& g->comps[i-1][j+1]!=nextcomp && g->comps[i-1][j]!=nextcomp && nextx==0 && g->comps[i-1][j]!=-1 && g->comps[i-1][j+1]!=-1)
 				if(g->comps[i][j]==-1&& g->comps[i-1][j+1]!=nextcomp && g->comps[i-1][j]!=nextcomp && nextx==-1 && g->comps[i-1][j]!=-1 && g->comps[i-1][j+1]!=-1)
 
@@ -670,8 +672,8 @@ int auto_control(game_state_type *g, player_data_type *pl)
 		}
 		g->just_thrown=0;
 		g->comps[nexty][nextx]=nextcomp;
-		int nextxpix=920-(nextx*60);
-		int nextypix=Win_floor_y-50-(nextx*60);
+		int nextxpix=920-(nextx*55)-(nexty*10);
+		int nextypix=Win_floor_y-50-(nexty*50);
 		g->toRun = needed_position(g, pl, nextxpix, nextypix);
 	}
 
@@ -712,7 +714,7 @@ int main(int argc, char *argv[])
 
     load_game_data(&game, "competence_builder.txt");
     init_level(&game, &player);
-    game.element_pause=500;
+    //game.element_pause=500;
         
     // TODO optional: show_splash_screen, select player, ...
     
