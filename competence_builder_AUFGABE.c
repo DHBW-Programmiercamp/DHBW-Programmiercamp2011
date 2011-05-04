@@ -349,9 +349,6 @@ void move_elements(game_state_type *g)
 				g->all_points = 0;
 				for (k=0;k<g->cur_act;k++){
 					g->all_points += g->element[k].points;
-					if(g->element[k].points>10) {
-						printf("points>10: %d %d %d\n",k,g->element[k].points,g->element[k].comp);
-					}
 				}
 			}
 
@@ -541,8 +538,13 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 		draw_tile(x, Win_floor_y, TILE_TABLE);
 
 	//Draw teacher
-	// TODO (optional): Animate/move the teacher in interesting ways...
-	draw_tile(50, CHARACTER_FLOOR, 3 );
+	// Animate/move the teacher in interesting ways...
+	if(g->element_countdown<10) {
+		draw_tile(50, CHARACTER_FLOOR, 2 );
+	}
+	else {
+		draw_tile(50, CHARACTER_FLOOR, 3 );
+	}
 
 	// Draw list of remaining competences in curriculum
 	int y_sitebar=Win_floor_y+Size_tile-Size_comp/2;
@@ -600,27 +602,7 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 	}
 
 	//Draw player
-	// TODO: Dynamic position, if jumping
-	draw_tile((int)pl->x, CHARACTER_FLOOR, (key_x == 0 ? 0 : 1));
-
-
-
-	// TODO: draw competences, some stupid examples
-	//draw_competence(100, 100, 3);
-	//draw_competence(400, Win_floor_y, 1);
-	//draw_competence(400, 300, 4);
-
-
-
-
-
-
-
-	
-
-	// TODO (optional): Draw score
-	
-
+	draw_tile((int)pl->x, CHARACTER_FLOOR, (key_x == 0 ? 1 : (pl->steps%4==0 ? 1 : 0)));
 
 	SDL_Flip(screen);  // Refresh screen (double buffering)
 }
@@ -870,6 +852,8 @@ int main(int argc, char *argv[])
 				 */
 				if ((player.x + Size_tile <= Win_width && player.x >= MIN_PLAYER_X) || (player.x + Size_tile > Win_width && key_x < 0) || (player.x < MIN_PLAYER_X && key_x > 0)) {
 					player.x+=key_x*Player_v_x;    // Calculate new x-position
+					player.steps++;
+					if(player.steps>100000) player.steps=0;
 				}
 
 				paint_all(&game, &player, key_x);  // Update graphics
