@@ -324,7 +324,7 @@ void move_elements(game_state_type *g) {
 				g->element[i].comp = 5;
 			}
 		}
-		else if(g->element[i].y<=Win_floor_y) { // Competence hits floor -> stop moving
+		else if(g->element[i].y<=Win_floor_y) { // Competence does not hit floor yet
 			// Check for collision with other elements
 			j=-1;
 			do {
@@ -349,13 +349,16 @@ void move_elements(game_state_type *g) {
 					g->all_points += g->element[k].points;  //count all points from cur_act
 				}
 			}
-
 		}
 		else if(g->element[i].x<MIN_PLAYER_X) {
 			explode(&g->element[i]);
 		}
 		else if (g->element[i].comp<4){
 			g->element[i].points=1;  //set groundelement.points 1
+			g->all_points = 0;
+			for (k=0;k<g->cur_act;k++) {
+				g->all_points += g->element[k].points;  //count all points from cur_act
+			}
 		}
 	}
 }
