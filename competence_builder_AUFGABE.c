@@ -741,58 +741,64 @@ int auto_control(game_state_type *g, player_data_type *pl)
 {
 	// TODO: This can become the hardest part
 	// Generate player motions such that it collects competence
-	/**Comps:
-	 * speichert wie die existierenden Comps zueinander stehen (sollten)
-	 * der Algorithmus beginnt oben rechts und geht Spalte für Spalte durch und
-	 * setzt die Comp an den ersten passenden Ort (keine selbe Comp dadrunter).
-	 * ->Pyramide
-	 * z.B.:
-	 * ------------------
-	 * |				| Pyramide:
-	 * |			1	|	oben:    1
-	 * |		2	0	|	unten: 2   0
-	 * ------------------
-	 */
-	if(g->just_thrown==1) //dieser Teil wird nur direkt nach dem initialisieren eines neuen Elements benötigt
-	{
-		int nextx=-1,nexty=0;
-		int nextcomp = g->curriculum[g->cur_act];
-		int i,j;
-		for(i=KI_rows; i>0; i--)//unterste Reihe auslassen
-			for(j=0; j<KI_cells-1;j++)//ganz linke Spalte auslassen
-				if(g->comps[i][j]==-1&& g->comps[i-1][j+1]!=nextcomp && g->comps[i-1][j]!=nextcomp && nextx==-1 && g->comps[i-1][j]!=-1 && g->comps[i-1][j+1]!=-1)
-				{
-					nextx=j;
-					nexty=i;
-				}
-		if(nextx==-1)//die untereste Reihe fehlt noch, hier wird ein anderes System benötigt: erst freie Position von rechts
-		{
-			int j=0;
-			while(nextx==-1)
-			{
-				if(g->comps[0][j]==-1)
-				{
-					nextx=j;
-					nexty=0;
-				}
-				j++;
-			}
-		}
-		g->just_thrown=0;
-		g->comps[nexty][nextx]=nextcomp;
-		int nextxpix=920-(nextx*55)-(nexty*10);
-		int nextypix=Win_floor_y-50-(nexty*50);
-		g->toRun = needed_position(g, pl, nextxpix, nextypix);
-	}
 
-	int key=0;
-	if(g->toRun<pl->x)
-		key=-1;
-	else if(g->toRun>pl->x)
-		key=1;
-	else
-		key=0;
-	return key;
+	// erste KI: F�r niedrigere Geschwindigkeiten
+	if (g->element_pause > 700) {
+
+		/**Comps:
+		 * speichert wie die existierenden Comps zueinander stehen (sollten)
+		 * der Algorithmus beginnt oben rechts und geht Spalte für Spalte durch und
+		 * setzt die Comp an den ersten passenden Ort (keine selbe Comp dadrunter).
+		 * ->Pyramide
+		 * z.B.:
+		 * ------------------
+		 * |				| Pyramide:
+		 * |			1	|	oben:    1
+		 * |		2	0	|	unten: 2   0
+		 * ------------------
+		 */
+		if(g->just_thrown==1) //dieser Teil wird nur direkt nach dem initialisieren eines neuen Elements benötigt
+		{
+			int nextx=-1,nexty=0;
+			int nextcomp = g->curriculum[g->cur_act];
+			int i,j;
+			for(i=KI_rows; i>0; i--)//unterste Reihe auslassen
+				for(j=0; j<KI_cells-1;j++)//ganz linke Spalte auslassen
+					if(g->comps[i][j]==-1&& g->comps[i-1][j+1]!=nextcomp && g->comps[i-1][j]!=nextcomp && nextx==-1 && g->comps[i-1][j]!=-1 && g->comps[i-1][j+1]!=-1)
+					{
+						nextx=j;
+						nexty=i;
+					}
+			if(nextx==-1)//die untereste Reihe fehlt noch, hier wird ein anderes System benötigt: erst freie Position von rechts
+			{
+				int j=0;
+				while(nextx==-1)
+				{
+					if(g->comps[0][j]==-1)
+					{
+						nextx=j;
+						nexty=0;
+					}
+					j++;
+				}
+			}
+			g->just_thrown=0;
+			g->comps[nexty][nextx]=nextcomp;
+			int nextxpix=920-(nextx*55)-(nexty*10);
+			int nextypix=Win_floor_y-50-(nexty*50);
+			g->toRun = needed_position(g, pl, nextxpix, nextypix);
+		}
+	} else { // Zweite KI: f�r h�here Geschwindigkeiten
+
+	}
+		int key=0;
+		if(g->toRun<pl->x)
+			key=-1;
+		else if(g->toRun>pl->x)
+			key=1;
+		else
+			key=0;
+		return key;
 }
 
 // main function
