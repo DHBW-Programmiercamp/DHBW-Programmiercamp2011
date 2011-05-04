@@ -10,10 +10,8 @@
 #include <math.h>
 #ifdef _WIN32 // _WIN32 is defined by many compilers available for the Windows operating system, but not by others.
 #include "C:\MinGW\include\SDL\SDL.h"
-//#include "C:\MinGW\include\SDL\SDL_ttf.h"
 #else
 #include "SDL/SDL.h"
-//#include "SDL/SDL_ttf.h"
 #endif
 
 #define TILE_BACKGROUND 5
@@ -96,7 +94,7 @@ int digit_count(int number)
 }
 
 /*************************************************************************************
- * Initialization
+ * Initialization and load data
  */
 
 // Load lecture/level plan from file
@@ -303,7 +301,6 @@ int check_collision(element_type *el1, element_type *el2, game_state_type *g)
 void move_elements(game_state_type *g)
 {
 	int i,j,coll,k;
-	//printf("ping\n");
 	for(i=0;i<g->cur_act;i++) {
 		if(g->element[i].comp==4)
 		{
@@ -378,11 +375,6 @@ int init_SDL()
 	if( screen == NULL ) {
         printf("Unable to init video: %s\n", SDL_GetError()); exit(1);
     }	
-	//Initialize SDL_ttf
-/*	if( TTF_Init() == -1 ) 	{
-		printf("Unable to init TTF.");
-		exit(1);
-	}*/
 	// Load graphics
 	SDL_WM_SetCaption("Flying Tux: Competence Builder", "Competence Builder");
 	graphics = SDL_LoadBMP("competence_builder.bmp");
@@ -450,23 +442,6 @@ void draw_digit(int x, int y, int number, char size)
 	SDL_BlitSurface(graphics, &src, screen, &dest);
 }
 
-/*void write_level(int level) {
-	SDL_Color textColor = { 255, 255, 255 };
-	SDL_Rect offset;
-	TTF_Font *font = NULL;
-	SDL_Surface *message = NULL;
-	char string[12];
-	font = TTF_OpenFont("Opificio.ttf", 28);
-	//If there was an error in loading the font
-	if(font == NULL)
-		return;
-	sprintf(string, "Semester: %d", level+1);
-	message = TTF_RenderText_Solid(font, string, textColor);
-	offset.x = 0;
-	offset.y = Win_height - 25;
-	SDL_BlitSurface(message, NULL, screen, &offset);
-}*/
-
 // Draw Global Score
 void draw_globalscore(int x, int y, int number)
 {
@@ -533,7 +508,6 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 		draw_tile(x, Win_floor_y, TILE_TABLE);
 
 	//Draw teacher
-	// TODO (optional): Animate/move the teacher in interesting ways...
 	draw_tile(50, CHARACTER_FLOOR, 3 );
 
 	// Draw list of remaining competences in curriculum
@@ -551,9 +525,6 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 		draw_globalscore(Size_digit_x*x, 0, num);
 		tmpscore -= i*num;
 	}
-
-	// ttf
-	//write_level((g->cur_level));
 
 	// Draw elements + points
 	for(i = 0; i < g->cur_act; i++) {
@@ -592,27 +563,7 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 	}
 
 	//Draw player
-	// TODO: Dynamic position, if jumping
 	draw_tile((int)pl->x, CHARACTER_FLOOR, (key_x == 0 ? 0 : 1));
-
-
-
-	// TODO: draw competences, some stupid examples
-	//draw_competence(100, 100, 3);
-	//draw_competence(400, Win_floor_y, 1);
-	//draw_competence(400, 300, 4);
-
-
-
-
-
-
-
-	
-
-	// TODO (optional): Draw score
-	
-
 
 	SDL_Flip(screen);  // Refresh screen (double buffering)
 }
@@ -630,40 +581,17 @@ int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
 	SDL_PollEvent(&keyevent);
 	if(keyevent.type==SDL_KEYDOWN) {
         switch(keyevent.key.keysym.sym){
-           case SDLK_LEFT:
-        	   (*key_x)--;
-        	   break;
-
-           case SDLK_RIGHT:
-        	   (*key_x)++;
-        	   break;
+           case SDLK_LEFT: (*key_x)--; break;
+           case SDLK_RIGHT: (*key_x)++; break;
            case 'a':
         	   auto_control_val = !auto_control_val;
-        	   *key_x=0;
-        	   break;
-           case 's':
-        	   *key_c=1;
-        	   break;
-
-           case 'f':
-        	   *key_c=2;
-        	   break;
-
-           case 'p':
-        	   *key_c=3;
-        	   break;
-
-           case 'r':
-        	   *key_c=4;
-        	   break;
-
-           case 'n':
-           	   *key_c=5;
-           	   break;
-
-           case SDLK_ESCAPE:
-        	   exit(0);
-        	   break;
+        	   *key_x=0; break;
+           case 's': *key_c=1; break;
+           case 'f': *key_c=2; break;
+           case 'p': *key_c=3; break;
+           case 'r': *key_c=4; break;
+           case 'n': *key_c=5; break;
+           case SDLK_ESCAPE: exit(0); break;
 
            default: break;
 		}
@@ -673,14 +601,8 @@ int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
 
 		switch(keyevent.key.keysym.sym){
 
-		case SDLK_LEFT:
-			(*key_x)++;
-			break;
-
-		case SDLK_RIGHT:
-			(*key_x)--;
-			break;
-
+		case SDLK_LEFT: (*key_x)++;	break;
+		case SDLK_RIGHT: (*key_x)--; break;
         case 's':
         case 'f':
         case 'p':
@@ -689,7 +611,7 @@ int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
      	   *key_c=0;
      	   break;
 
-			default: break;
+		default: break;
 		}
 	}
 	return 1;
@@ -701,33 +623,7 @@ int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
  * TODO: -> this is the big competition challenge!                 *
  *           put your brightest ideas in here to win!               *
  ********************************************************************/
-int needed_position(game_state_type *g, player_data_type *pl, int x, int y)//calculates position of the student to place an object perfectly
-{
-/*
-	int foundfirst=0;
-	float tempx, tempy;
-	float tempvx, tempvy;
-	tempx=(float)Element_start_x;
-	tempy=(float)Win_floor_y;
-	tempvy=-(float)sqrt(tempy * 2. * Gravity);
-	tempvx=(float)((tempx-tempx)/(-tempvy/Gravity*2.));//nur vor dem Abwurf erlaubt
-	float precision = 5.0;
-	while (x<tempx+precision && x>tempx-precision && y<tempy+precision && y>tempy+precision)
-	{
-		tempvy+=Gravity;   // Gravity affects vy
-		tempy+=tempvy;     // change position based on speed
-		tempx+=tempvx;
-	}
-	el.x=(float)Element_start_x;
-	el.y=(float)Win_floor_y;
-	el.vy=-(float)sqrt(el.y * 2. * Gravity);
-	el.vx=(float)((pl->x-el.x)/(-el.vy/Gravity*2.));*/
-	return x;
-}
 
-void set_window_title(char *title) {
-
-}
 
 int auto_control(game_state_type *g, player_data_type *pl)
 {
@@ -796,7 +692,13 @@ int auto_control(game_state_type *g, player_data_type *pl)
 		return key;
 }
 
-// main function
+
+
+
+/******************************************
+ * Main Function
+ ***************************************/
+
 int main(int argc, char *argv[])
 {
 	// Major game variables: Player + game state
