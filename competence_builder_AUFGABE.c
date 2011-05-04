@@ -639,7 +639,7 @@ int auto_control(game_state_type *g, player_data_type *pl)
 			int i,j;
 			int cells = KI_cells;
 			int rows = KI_rows;
-			int grenze = 800;
+			int grenze = 600;
 			if (*(g->element_pause) <= grenze) {
 				cells = 4;
 			}
@@ -690,9 +690,16 @@ int auto_control(game_state_type *g, player_data_type *pl)
 			}
 			g->just_thrown=0;
 			g->comps[nexty][nextx]=nextcomp;
-			int nextxpix=920-(nextx*55)-(nexty*10);
+			int nextxpix;
+			if(nextx!=-1)
+				nextxpix=920-(nextx*55)-(nexty*10);
+			else
+				nextxpix=nextx;
 			if(nextxpix<MIN_PLAYER_X)
-				g->toRun = 800;
+			{
+				 srand(time(NULL));
+				 g->toRun = 700+rand()%200;
+			}
 			else
 			//int nextypix=Win_floor_y-50-(nexty*50);
 				g->toRun = nextxpix; //needed_position(g, pl, nextxpix, nextypix);
