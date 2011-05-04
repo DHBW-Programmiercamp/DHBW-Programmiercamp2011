@@ -690,9 +690,6 @@ int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
  ********************************************************************/
 int needed_position(game_state_type *g, player_data_type *pl, int x, int y)//calculates position of the student to place an object perfectly
 {
-	float studentabstand = (x-Element_start_x)/100;
-	float ebene = pow(2,floor(Win_floor_y-y/Size_comp));
-	return x;
 	/*
 	int foundfirst=0;
 	float tempx, tempy;
@@ -718,21 +715,31 @@ int auto_control(game_state_type *g, player_data_type *pl)
 {
 	// TODO: This can become the hardest part
 	// Generate player motions such that it collects competence
-	if(g->just_thrown==1)
+	/**Comps:
+	 * speichert wie die existierenden Comps zueinander stehen (sollten)
+	 * der Algorithmus beginnt oben rechts und geht Spalte für Spalte durch und
+	 * setzt die Comp an den ersten passenden Ort (keine selbe Comp dadrunter).
+	 * ->Pyramide
+	 * z.B.:
+	 * ------------------
+	 * |				| Pyramide:
+	 * |			1	|	oben:    1
+	 * |		2	0	|	unten: 2   0
+	 * ------------------
+	 */
+	if(g->just_thrown==1) //dieser Teil wird nur direkt nach dem initialisieren eines neuen Elements benötigt
 	{
 		int nextx=-1,nexty=0;
 		int nextcomp = g->curriculum[g->cur_act];
 		int i,j;
 		for(i=KI_rows; i>0; i--)//unterste Reihe auslassen
 			for(j=0; j<KI_cells-1;j++)//ganz linke Spalte auslassen
-				//if(g->comps[i][j]==-1)&& g->comps[i-1][j+1]!=nextcomp && g->comps[i-1][j]!=nextcomp && nextx==0 && g->comps[i-1][j]!=-1 && g->comps[i-1][j+1]!=-1)
 				if(g->comps[i][j]==-1&& g->comps[i-1][j+1]!=nextcomp && g->comps[i-1][j]!=nextcomp && nextx==-1 && g->comps[i-1][j]!=-1 && g->comps[i-1][j+1]!=-1)
-
 				{
 					nextx=j;
 					nexty=i;
 				}
-		if(nextx==-1)
+		if(nextx==-1)//die untereste Reihe fehlt noch, hier wird ein anderes System benötigt: erst freie Position von rechts
 		{
 			int j=0;
 			while(nextx==-1)
@@ -760,17 +767,6 @@ int auto_control(game_state_type *g, player_data_type *pl)
 	else
 		key=0;
 	return key;
-
-	// The following is a very stupid student example implementation
-	// Can you do better?
-/*
-	static int move_state=0;
-	
-	move_state=(move_state+1)%50; 
-	if(move_state<20) return 1; // move left
-	if(move_state>29) return -1; // move right
-	return 0; // do not move
-	*/
 }
 
 // main function
