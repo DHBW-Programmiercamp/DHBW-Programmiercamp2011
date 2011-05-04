@@ -742,7 +742,7 @@ int auto_control(game_state_type *g, player_data_type *pl)
 	// TODO: This can become the hardest part
 	// Generate player motions such that it collects competence
 
-	// erste KI: Für niedrigere Geschwindigkeiten
+	// erste KI: Fï¿½r niedrigere Geschwindigkeiten
 	if (g->element_pause > 700) {
 
 		/**Comps:
@@ -785,10 +785,13 @@ int auto_control(game_state_type *g, player_data_type *pl)
 			g->just_thrown=0;
 			g->comps[nexty][nextx]=nextcomp;
 			int nextxpix=920-(nextx*55)-(nexty*10);
-			int nextypix=Win_floor_y-50-(nexty*50);
-			g->toRun = needed_position(g, pl, nextxpix, nextypix);
+			if(nextxpix<MIN_PLAYER_X)
+				g->toRun = 800;
+			else
+			//int nextypix=Win_floor_y-50-(nexty*50);
+				g->toRun = nextxpix; //needed_position(g, pl, nextxpix, nextypix);
 		}
-	} else { // Zweite KI: für höhere Geschwindigkeiten
+	} else { // Zweite KI: fï¿½r hï¿½here Geschwindigkeiten
 
 	}
 		int key=0;
