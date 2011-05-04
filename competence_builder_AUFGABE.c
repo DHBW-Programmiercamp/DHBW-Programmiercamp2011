@@ -63,8 +63,8 @@ typedef struct {
 typedef struct {
 	// Data to be read from file
 	int levels;              // Number of game levels
-	int element_pause;       // Time interval between elements
-	int cur_max;             // Number of curriculum elements
+	int *element_pause;       // Time interval between elements
+	int *cur_max;             // Number of curriculum elements - Array für verschiedene Levels
 	char *curriculum;        // Array of competence numbers (0-3)
 	  
 	// Current game state
@@ -72,6 +72,7 @@ typedef struct {
 	int element_countdown;   // Countdown until next element is launched
 	int cur_act;             // Current element 
 	unsigned int all_points; // Gesamtpunktzahl
+	int cur_level;              // Current level
 } game_state_type;
 
 
@@ -80,10 +81,10 @@ typedef struct {
  */
 
 // Load lecture/level plan from file
-int load_game_data(game_state_type *g, char *filename)
+int load_game_data_info(game_state_type *g, char *filename)  //Data Info laden
 {
 	FILE *file;
-	short int cur_count=0; 	// Zähler für das Einlesen des Curriculums
+	short int i_level=0; 	// Zähler für das Einlesen des Curriculums
 
     // Open the file for reading
     file=fopen(filename,"r"); 
@@ -95,13 +96,46 @@ int load_game_data(game_state_type *g, char *filename)
     // TODO: Read level data, allocate memory if needed
     
 	fscanf(file,"%d",&g->levels);		// Lese aus File erste Zahl: Level Anzahl
-	fscanf(file,"%d %d",&g->cur_max, &g->element_pause);		// Lese aus File Anzahl Blöcke, Wartezeit für Block
 
-	g->curriculum = (char *)malloc(sizeof(char) * g->cur_max);  //Seicher für Array curriculum allokieren
+	g->cur_max = (int *)malloc(sizeof(int) * g->levels);  //Speicher für Array curriculum allokieren
+	g->element_pause = (int *)malloc(sizeof(int) * g->levels);  //Speicher für Array curriculum allokieren
 
-	fscanf(file,"\r");		// Lese aus File: Zeilenumbruch
+	for(i_level=0; i_level < g->levels; i_level++){
+		fscanf(file,"%d %d ",&(g->cur_max[i_level]), &(g->element_pause[i_level]) );		// Lese aus File Anzahl Blöcke, Wartezeit für Block
+	}
+    fclose(file);    // close file
+    return 0;
+}
 
-	for(cur_count=0;cur_count<(g->cur_max);cur_count++) { 		//Schleife um alle Blöcke  nacheinander auszulesen
+// Blockladen Function
+	int load_game_data(game_state_type *g, char *filename) // Blöcke für jedes Level einzeln laden
+	{
+		FILE *file;
+		short int cur_count=0; 	// Zähler für das Einlesen des Curriculums
+		int help2=0, i=0; //Zwischenspiecher um übersprungene Daten ins Leere laufen zu lassen  (Funktion für fscanf fehlt: Springe zu einer bestimmten Zahl)
+	    char help=0;
+
+		// Open the file for reading
+	    file=fopen(filename,"r");
+	    if(file==NULL) {
+	        printf("Error: can't open file.\n");
+	        return -1;
+	    }
+
+	g->curriculum = (char *)malloc(sizeof(char) * g->cur_max[(g->cur_level)]);  //Speicher für Array curriculum allokieren
+
+	help2 = 1 + 2 * (g->levels);
+	for(i=0;i < g->cur_level;i++){
+		help2 = help2 + g->cur_max[i];
+	}
+	for(i=0;i<help2;i++){
+		fscanf(file,"%d ", &help );		// Lese aus File uninteressante Blöcke und schreibe in helper Variable die nicht weiter benutzt wird...
+		if (help == '\n' || help == '\r')
+			help2++;
+		printf("%d ", help);
+	}
+
+	for(cur_count=0;cur_count<(g->cur_max[(g->cur_level)]);cur_count++) { 		//Schleife um alle Blöcke  nacheinander auszulesen
 		fscanf(file,"%c ",&(g->curriculum[cur_count]) );		// Lese aus File Blöcke...
 		g->curriculum[cur_count] = g->curriculum[cur_count] - 48; // ASCII Konvertieren
 	}
@@ -109,12 +143,13 @@ int load_game_data(game_state_type *g, char *filename)
     fclose(file);    // close file
     return 0;
 }
+//----------------------
 
 // Initialize next level / player
 void init_level(game_state_type *g, player_data_type *p )
 {
-	g->element=(element_type *)malloc(sizeof(element_type)*g->cur_max);   // Simple example for one element, TODO: need to change this COMPLETED
-	g->element_countdown = g->element_pause / 20; //1200ms /20ms (20ms braucht ca. ein programmdurchlauf)
+	g->element=(element_type *)malloc(sizeof(element_type)*g->cur_max[(g->cur_level)]);   // Simple example for one element, TODO: need to change this COMPLETED
+	g->element_countdown = g->element_pause[(g->cur_level)] / 20; //1200ms /20ms (20ms braucht ca. ein programmdurchlauf)
 	g->cur_act=0;
 	g->all_points=4096;
 	// Init player position
@@ -134,11 +169,11 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 	// TO DO: Keep in mind the correct waiting time between elements
 	// TO DO: Use the following calculation to initialize x, y, vx, vy (as explained in game rules)
 	g->element_countdown--;
-	if(g->element_countdown == 0 && g->cur_act!=g->cur_max)//Soll er gerade werfen und sind noch Elemente zum Werfen da
+	if(g->element_countdown == 0 && g->cur_act!=g->cur_max[(g->cur_level)])//Soll er gerade werfen und sind noch Elemente zum Werfen da
 	{
 		element_type el;
 		//el=(element_type *)malloc(sizeof(element_type));
-		g->element_countdown = g->element_pause / 20;
+		g->element_countdown = g->element_pause[(g->cur_level)] / 20;
 		// The teacher throws in such direction that the competence lands at the current player position
 		// For the competition these calculations must be left unchanged!
 		el.x=(float)Element_start_x;
@@ -556,67 +591,80 @@ int main(int argc, char *argv[])
 	
 	init_SDL();
 
-    load_game_data(&game, "competence_builder.txt");
-    init_level(&game, &player);
-    game.element_pause=500;
+    load_game_data_info(&game, "competence_builder.txt");
+//    init_level(&game, &player);
+//    game.element_pause=500;
         
     // TODO optional: show_splash_screen, select player, ...
     
-    // The main control loop 
-    // key_x initialisieren
-    key_x = 0;
-    key_c = 0;
-    // Abbrechen, wenn key_control 0 zur�ckgibt.
-	while(key_control(&key_x,&key_c)) {
-		if(key_c==1) {
-			delay+=10;
-		}
-		else if(key_c==2) {
-			delay-=10;
-			if(delay<=20) delay=20;
-		}
-		else if(key_c==3) {
-			pause=1;
-		}
-		else if(key_c==4) {
-			pause=0;
-		}
-		if(pause==0) {
-			//Draw first
-			paint_all(&game, &player, key_x);
+    //For-Schleife für verschiedene Levels
+    for(game.cur_level=0;game.cur_level<game.levels;game.cur_level++)
+    {
+        load_game_data(&game, "competence_builder.txt");
+        init_level(&game, &player);
+		// The main control loop
+		// key_x initialisieren
+		key_x = 0;
+		key_c = 0;
+		// Abbrechen, wenn key_control 0 zur�ckgibt.
+		while(key_control(&key_x,&key_c)) {
+			if(key_c==1) {
+				delay+=10;
+			}
+			else if(key_c==2) {
+				delay-=10;
+				if(delay<=20) delay=20;
+			}
+			else if(key_c==3) {
+				pause=1;
+			}
+			else if(key_c==4) {
+				pause=0;
+			}
+			if(pause==0) {
+				//Draw first
+				paint_all(&game, &player, key_x);
 
-			init_next_element(&game, &player);
-			// TODO: Next level?
-			//printf("%d %d\n",game.cur_act,game.element[game.cur_act-1].comp);
+				init_next_element(&game, &player);
+				// TODO: Next level?
+				//printf("%d %d\n",game.cur_act,game.element[game.cur_act-1].comp);
 
-			// move_elements is called ten times before the graphics are updated
-			// Thus, a better simulation precision is achieved
-			// without spending too much performance on (slow) graphics output
-			for(i=0; i<10; i++)
-				move_elements(&game);
+				// move_elements is called ten times before the graphics are updated
+				// Thus, a better simulation precision is achieved
+				// without spending too much performance on (slow) graphics output
+				for(i=0; i<10; i++)
+					move_elements(&game);
 
-			// Wenn die Automatik l�uft sich dieser auch bedienen
-			// Wenn die Automatik l�uft sich dieser auch bedienen
-			if (Auto_control) {
-				key_x = 0;
-				key_x=auto_control(&game, &player); // use only for 'robot player'
+				// Wenn die Automatik l�uft sich dieser auch bedienen
+				// Wenn die Automatik l�uft sich dieser auch bedienen
+				if (Auto_control) {
+					key_x = 0;
+					key_x=auto_control(&game, &player); // use only for 'robot player'
+				}
+
+				/* Nur bewegen, wenn
+				 * - der Player innerhalb der Bewegungsreichweite ist
+				 * - der Player rechts au�erhalb der Bewegungsreichweite ist und sich nach links bewegen m�chte
+				 * - der Player links au�erhalb der Bewegungsreichweite ist und sich nach rechts bewegen m�chte
+				 */
+				if ((player.x + Size_tile <= Win_width && player.x >= MIN_PLAYER_X) || (player.x + Size_tile > Win_width && key_x < 0) || (player.x < MIN_PLAYER_X && key_x > 0)) {
+					player.x+=key_x*Player_v_x;    // Calculate new x-position
+				}
+
+				paint_all(&game, &player, key_x);  // Update graphics
+				SDL_Delay(delay); // wait 20 ms
+			}
+			if (game.cur_act == game.cur_max[game.cur_level]) {
+				SDL_Delay(3000); // wait 20 ms
+				break;  //End if all blocks are shot
 			}
 
-			/* Nur bewegen, wenn
-			 * - der Player innerhalb der Bewegungsreichweite ist
-			 * - der Player rechts au�erhalb der Bewegungsreichweite ist und sich nach links bewegen m�chte
-			 * - der Player links au�erhalb der Bewegungsreichweite ist und sich nach rechts bewegen m�chte
-			 */
-			if ((player.x + Size_tile <= Win_width && player.x >= MIN_PLAYER_X) || (player.x + Size_tile > Win_width && key_x < 0) || (player.x < MIN_PLAYER_X && key_x > 0)) {
-				player.x+=key_x*Player_v_x;    // Calculate new x-position
-			}
+	} // End while-Schleife
+	free(game.curriculum);
+} //End for-Schleife
 
-			paint_all(&game, &player, key_x);  // Update graphics
+    //TODO DRAW END SCORE
 
-			SDL_Delay(delay); // wait 20 ms
-		}
-	}
 
-    free(game.curriculum);
 	return 0;
 }
