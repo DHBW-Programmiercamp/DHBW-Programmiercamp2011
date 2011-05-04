@@ -196,7 +196,6 @@ void init_next_element(game_state_type *g, player_data_type *pl)
 	{
 		element_type el;
 
-		//el=(element_type *)malloc(sizeof(element_type));
 		g->element_countdown = g->element_pause[(g->cur_level)] / 20;
 		// The teacher throws in such direction that the competence lands at the current player position
 		// For the competition these calculations must be left unchanged!
@@ -505,9 +504,7 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 	for(; x < Win_width; x += Size_tile)
 		draw_tile(x, Win_floor_y, TILE_TABLE);
 
-	//Draw teacher
-
-	// Animate/move the teacher in interesting ways...
+	//Draw teacher with movement
 	if(g->element_countdown<10) {
 		draw_tile(50, CHARACTER_FLOOR, 2 );
 	}
@@ -571,7 +568,8 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 
 	draw_tile((int)pl->x, CHARACTER_FLOOR, (key_x == 0 ? 1 : (pl->steps%4==0 ? 1 : 0)));
 
-	SDL_Flip(screen);  // Refresh screen (double buffering)
+	// Refresh screen (double buffering)
+	SDL_Flip(screen);
 }
 
 
@@ -624,12 +622,8 @@ int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
 }
 
 /********************************************************************
- * The student-robot                                                *
- * generate left/right player motions automatically                 *
- * TODO: -> this is the big competition challenge!                 *
- *           put your brightest ideas in here to win!               *
+ * The student-robot  - KI                                              *
  ********************************************************************/
-
 
 int auto_control(game_state_type *g, player_data_type *pl)
 {
@@ -708,7 +702,7 @@ int auto_control(game_state_type *g, player_data_type *pl)
 			g->comps[nexty][nextx]=nextcomp;
 			int nextxpix=920-(nextx*70)-(nexty*10);
 			int nextypix=Win_floor_y-50-(nexty*50);
-			g->toRun = needed_position(g, pl, nextxpix, nextypix);
+			//g->toRun = needed_position(g, pl, nextxpix, nextypix);
 		}
 	}
 		int key=0;
@@ -720,8 +714,6 @@ int auto_control(game_state_type *g, player_data_type *pl)
 			key=0;
 		return key;
 }
-
-
 
 
 /******************************************
@@ -741,13 +733,8 @@ int main(int argc, char *argv[])
 	
 	init_SDL();
 
-    load_game_data_info(&game, "competence_builder.txt");
-    //init_level(&game, &player);
-    //game.element_pause=500;
-    printf("test");
-        
-    // TODO optional: show_splash_screen, select player, ...
-    
+    load_game_data_info(&game, "competence_builder.txt");  //Load Level Definition data
+
     //For-Schleife für verschiedene Levels
     for(game.cur_level=0;game.cur_level<game.levels;game.cur_level++)
     {
@@ -779,9 +766,7 @@ int main(int argc, char *argv[])
 			if(pause==0) {
 				//Draw first
 				paint_all(&game, &player, key_x);
-
 				init_next_element(&game, &player);
-				//printf("%d %d\n",game.cur_act,game.element[game.cur_act-1].comp);
 
 				// move_elements is called ten times before the graphics are updated
 				// Thus, a better simulation precision is achieved
@@ -789,7 +774,6 @@ int main(int argc, char *argv[])
 				for(i=0; i<10; i++)
 					move_elements(&game);
 
-				// Wenn die Automatik l�uft sich dieser auch bedienen
 				// Wenn die Automatik l�uft sich dieser auch bedienen
 		if (auto_control_val) {
 			key_x = 0;
@@ -815,9 +799,12 @@ int main(int argc, char *argv[])
 //
 //			}
 
-		} // End while-Schleife
-		free(game.curriculum);
+		}
+		free(game.curriculum); //Free up memory of Level Data Array
     }
+    free(game.cur_max); //Free up memory of Level Definition (cur_max) Array
+    free(game.element_pause); //Free up memory of Level Definition (element_pause) Array
+    free(game.element); //Free up memory of Element Array
     return 0;
 }
 
