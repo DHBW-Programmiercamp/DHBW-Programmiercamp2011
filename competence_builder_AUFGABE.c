@@ -389,10 +389,10 @@ int init_SDL()
         printf("Unable to init video: %s\n", SDL_GetError()); exit(1);
     }	
 	//Initialize SDL_ttf
-	if( TTF_Init() == -1 ) 	{
+/*	if( TTF_Init() == -1 ) 	{
 		printf("Unable to init TTF.");
 		exit(1);
-	}
+	}*/
 	// Load graphics
 	SDL_WM_SetCaption("Flying Tux: Competence Builder", "Competence Builder");
 	graphics = SDL_LoadBMP("competence_builder.bmp");
