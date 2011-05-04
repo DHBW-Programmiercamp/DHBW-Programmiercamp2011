@@ -832,7 +832,7 @@ int main(int argc, char *argv[])
 			}
 			else if(key_c==2) {
 				delay-=10;
-				if(delay<=20) delay=20;
+				if(delay<10) delay=3;
 			}
 			else if(key_c==3) {
 				pause=1;
