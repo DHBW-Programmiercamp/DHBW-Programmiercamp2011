@@ -20,13 +20,20 @@
 #define TILE_FLOOR 6
 #define TILE_TABLE 4
 #define MIN_PLAYER_X  2*Size_tile
+#define MENU_BG_SIZE 95
+#define MENU_BUTTON_WIDTH 600
+#define MENU_BUTTON_HEIGHT 50
+#define MENU_HEADER_WIDTH 600
+#define MENU_HEADER_HEIGHT 100
+#define MENU_TUX_HEIGHT 78
+#define MENU_TUX_WIDTH 102
 //Set player 20px above REAL floor
 #define CHARACTER_FLOOR Win_floor_y
 #define KI_rows 12
 #define KI_cells 20
 
 // Graphics data - SDL variables
-SDL_Surface *graphics, *screen;  // Graphics data, screen data
+SDL_Surface *graphics, *screen, *menu_bg, *menu_button, *menu_header, *menu_tux;  // Graphics data, screen data, menu data
 
 // Wenn die Autimatik lï¿½uft
 int auto_control_val = 1;
@@ -383,7 +390,7 @@ int init_SDL()
     } 
     atexit(SDL_Quit);
     screen = SDL_SetVideoMode(Win_width, Win_height, 32, SDL_DOUBLEBUF | SDL_HWSURFACE);
-	if( screen == NULL ) {
+	if(!screen) {
         printf("Unable to init video: %s\n", SDL_GetError()); exit(1);
     }	
 	//Initialize SDL_ttf
@@ -394,13 +401,22 @@ int init_SDL()
 	// Load graphics
 	SDL_WM_SetCaption("Flying Tux: Competence Builder", "Competence Builder");
 	graphics = SDL_LoadBMP("competence_builder.bmp");
-    if (graphics == NULL) {
-	    printf("Unable to load bitmap: %s\n", SDL_GetError());  exit(1);
+	menu_bg = SDL_LoadBMP("menu_texture.bmp");
+	menu_button = SDL_LoadBMP("menu_buttons.bmp");
+	menu_header = SDL_LoadBMP("menu_header.bmp");
+	menu_tux = SDL_LoadBMP("flying_tux.bmp");
+
+    if (!graphics || !menu_bg || !menu_button || !menu_header || !menu_tux) {
+	    printf("Unable to load bitmaps: %s\n", SDL_GetError());  exit(1);
 	}
 	// Set transparency color
-	color=SDL_MapRGB(screen->format, 255, 200, 200);
+	color = SDL_MapRGB(screen->format, 255, 200, 200);
 	SDL_SetColorKey(graphics, SDL_SRCCOLORKEY | SDL_RLEACCEL, color);
 	graphics = SDL_DisplayFormatAlpha(graphics);
+	SDL_SetColorKey(menu_header, SDL_SRCCOLORKEY | SDL_RLEACCEL, color);
+	menu_header = SDL_DisplayFormatAlpha(menu_header);
+	SDL_SetColorKey(menu_tux, SDL_SRCCOLORKEY | SDL_RLEACCEL, color);
+	menu_tux = SDL_DisplayFormatAlpha(menu_tux);
 	return 0;
 }
 
@@ -432,6 +448,34 @@ void draw_tile(int x, int y, int number)
 
 
 	SDL_BlitSurface(graphics, &src, screen, &dest);
+}
+
+// draw image
+void draw_image(SDL_Surface *surface, int x, int y, int w, int h)
+{
+	SDL_Rect src, dest;
+
+	//Set sizes
+	src.w = dest.w = w;
+	src.h = dest.h = h;
+	dest.x = x;
+	dest.y = y;
+	src.x = 0;
+	src.y = 0;
+
+
+	SDL_BlitSurface(surface, &src, screen, &dest);
+}
+
+void draw_button(int x, int y, int number)
+{
+	SDL_Rect src, dest;
+
+	src.w=dest.w=MENU_BUTTON_WIDTH;
+	src.h=dest.h=MENU_BUTTON_HEIGHT;
+	src.x = 0;	src.y = number*MENU_BUTTON_HEIGHT;
+	dest.x = x;	dest.y = y;
+	SDL_BlitSurface(menu_button, &src, screen, &dest);
 }
 
 // draw competence elemtents at position (x, y) (number=0-3)
@@ -516,6 +560,32 @@ void draw_sitebar(int x, int y, int number)
 /*******************************************************************
  * Refresh the screen and draw all graphics                        *
  *******************************************************************/
+void paint_menu(int *tux_x)
+{
+	int x, y;
+	//Draw colored background
+	draw_rect(0,Win_floor_y,Win_width, Win_height-Win_floor_y, 139, 69, 19);
+
+	//Draw background color
+	for(y = 0; y < Win_height; y += MENU_BG_SIZE)
+		for(x = 0; x < Win_width; x += MENU_BG_SIZE)
+			draw_image(menu_bg, x, y, MENU_BG_SIZE, MENU_BG_SIZE);
+
+	//Header
+	draw_image(menu_header, round(Win_width/2)-round(MENU_HEADER_WIDTH/2), 20, MENU_HEADER_WIDTH, MENU_HEADER_HEIGHT);
+
+	//Draw Buttons
+	draw_button(round(Win_width/2)-round(MENU_BUTTON_WIDTH/2), 300, 0); //Normal
+	draw_button(round(Win_width/2)-round(MENU_BUTTON_WIDTH/2), 370, 1); //Automatik
+	draw_button(round(Win_width/2)-round(MENU_BUTTON_WIDTH/2), 440, 2); //Beenden
+
+	//Tux
+	draw_image(menu_tux, (*tux_x), 130, MENU_TUX_WIDTH, MENU_TUX_HEIGHT);
+	(*tux_x) = ((*tux_x)+10)%Win_width;
+
+	SDL_Flip(screen);
+}
+
 void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 {
     if(!g)
@@ -593,6 +663,8 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 				case 1:
 					draw_blockscore(left_x, up_y, tmpscore);
 					break;
+				default:
+					break;
 
 			}
 			//</HackyAsHell>
@@ -604,24 +676,6 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 	draw_tile((int)pl->x, CHARACTER_FLOOR, (key_x == 0 ? 0 : 1));
 
 
-
-	// TODO: draw competences, some stupid examples
-	//draw_competence(100, 100, 3);
-	//draw_competence(400, Win_floor_y, 1);
-	//draw_competence(400, 300, 4);
-
-
-
-
-
-
-
-	
-
-	// TODO (optional): Draw score
-	
-
-
 	SDL_Flip(screen);  // Refresh screen (double buffering)
 }
 
@@ -629,6 +683,30 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 /********************************************************************
  * SDL-Function to check for keyboard events                        *
  ********************************************************************/
+int process_menu_click(char *left_clicked)
+{
+	SDL_PumpEvents();
+
+	int x, y;
+	if(SDL_GetMouseState(&x, &y)&SDL_BUTTON(1))
+		(*left_clicked)=1;
+	else if((*left_clicked)) {//was pressed, is not now
+		//is in button x bounds
+		if(x >= round(Win_width/2)-round(MENU_BUTTON_WIDTH/2) && x <= round(Win_width/2)+round(MENU_BUTTON_WIDTH/2)) {
+			if(y >= 300 && y <= 350) { //Manuell
+				return 2;
+			} else if(y >= 370 && y <= 420) { //Automatic
+				return 3;
+			} else if(y >= 440 && y <= 490) { //Close
+				return 1;
+			}
+		}
+		(*left_clicked)=0;
+	}
+	SDL_Delay(10); //stop constant polling
+	return 0;
+}
+
 int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
 {
 	SDL_Event keyevent;
@@ -742,7 +820,7 @@ int auto_control(game_state_type *g, player_data_type *pl)
 	// TODO: This can become the hardest part
 	// Generate player motions such that it collects competence
 
-	// erste KI: Für niedrigere Geschwindigkeiten
+	// erste KI: Fï¿½r niedrigere Geschwindigkeiten
 	if (g->element_pause > 700) {
 
 		/**Comps:
@@ -788,7 +866,7 @@ int auto_control(game_state_type *g, player_data_type *pl)
 			int nextypix=Win_floor_y-50-(nexty*50);
 			g->toRun = needed_position(g, pl, nextxpix, nextypix);
 		}
-	} else { // Zweite KI: für höhere Geschwindigkeiten
+	} else { // Zweite KI: fï¿½r hï¿½here Geschwindigkeiten
 
 	}
 		int key=0;
@@ -811,11 +889,29 @@ int main(int argc, char *argv[])
 	int delay=20;
 
 	// some other variables
-	int i, key_x, key_c;
+	int i, key_x, key_c, tux_x;
 	
 	init_SDL();
 
     load_game_data_info(&game, "competence_builder.txt");
+
+    char action, left_mouse=0;
+    tux_x = 0;
+    while(!(action = process_menu_click(&left_mouse)))
+    	paint_menu(&tux_x);
+	switch(action) {
+		case 1: //Close
+			return 0;
+		case 2: //Start manuell
+			auto_control_val=0;
+			break;
+		case 3: //Start automatik
+			auto_control_val=1;
+			break;
+		default:
+			break;
+	}
+
     //init_level(&game, &player);
     //game.element_pause=500;
     printf("test");
