@@ -11,10 +11,10 @@
 #include <math.h>
 #ifdef _WIN32 // _WIN32 is defined by many compilers available for the Windows operating system, but not by others.
 #include "C:\MinGW\include\SDL\SDL.h"
-#include "C:\MinGW\include\SDL\SDL_ttf.h"
+//#include "C:\MinGW\include\SDL\SDL_ttf.h"
 #else
 #include "SDL/SDL.h"
-#include "SDL/SDL_ttf.h"
+//#include "SDL/SDL_ttf.h"
 #endif
 
 #define TILE_BACKGROUND 5
@@ -460,7 +460,7 @@ void draw_digit(int x, int y, int number, char size)
 	SDL_BlitSurface(graphics, &src, screen, &dest);
 }
 
-void write_level(int level) {
+/*void write_level(int level) {
 	SDL_Color textColor = { 255, 255, 255 };
 	SDL_Rect offset;
 	TTF_Font *font = NULL;
@@ -475,7 +475,7 @@ void write_level(int level) {
 	offset.x = 0;
 	offset.y = Win_height - 25;
 	SDL_BlitSurface(message, NULL, screen, &offset);
-}
+}*/
 
 // Draw Global Score
 void draw_globalscore(int x, int y, int number)
@@ -549,7 +549,7 @@ void paint_all(game_state_type *g, player_data_type *pl, int key_x)
 		tmpscore -= i*num;
 	}
 
-	write_level((g->cur_level));
+//	write_level((g->cur_level));
 
 	// Draw elements + points
 	for(i = 0; i < g->cur_act; i++) {
