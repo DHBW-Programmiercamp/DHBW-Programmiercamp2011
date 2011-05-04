@@ -617,7 +617,7 @@ int key_control(int *key_x, int *key_c) /* TODO: Final Testing */
         	   break;
 
            case SDLK_ESCAPE:
-        	   return 0;
+        	   exit(0);
         	   break;
 
            default: break;
