@@ -318,6 +318,7 @@ void move_elements(game_state_type *g) {
 				g->element[i].countdown--;
 			}
 			else {
+				// move element outside screen
 				g->element[i].x = Win_width - Size_comp;
 				g->element[i].y = Win_height - Size_comp;
 				g->element[i].comp = 5;
