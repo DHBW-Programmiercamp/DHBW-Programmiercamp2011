@@ -285,6 +285,7 @@ int check_collision(element_type *el1, element_type *el2, game_state_type *g) {
 				if(el1->points==0) {
 					if(el1->comp!=el2->comp) el1->points+=el2->points;
 					if(el1->comp!=el3->comp) el1->points+=el3->points;
+					if(el1->comp!=el2->comp && el1->comp!=el3->comp && el1->points==0) el1->points=1;
 				}
 				return 2; //top collision
 			}
@@ -838,11 +839,6 @@ int main(int argc, char *argv[]) {
 			break;
 	}
 
-    //init_level(&game, &player);
-    //game.element_pause=500;
-    printf("test");
-        
-    // TODO optional: show_splash_screen, select player, ...
     //For-Schleife für verschiedene Levels
     for(game.cur_level=0;game.cur_level<game.levels;game.cur_level++)     {
         if (random == 0) load_game_data(&game, "competence_builder.txt");
