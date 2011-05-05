@@ -28,6 +28,8 @@
 #define MENU_HEADER_HEIGHT 100
 #define MENU_TUX_HEIGHT 78
 #define MENU_TUX_WIDTH 102
+#define MENU_HELP_WIDTH 600
+#define MENU_HELP_HEIGHT 200
 #define T_TUX_SIZE 32
 //Set player 20px above REAL floor
 #define CHARACTER_FLOOR Win_floor_y
@@ -35,7 +37,7 @@
 #define KI_cells 14
 
 // Graphics data - SDL variables
-SDL_Surface *graphics, *screen, *menu_bg, *menu_button, *menu_header, *menu_tux, *thousand_tux, *menu_random;  // Graphics data, screen data, menu data
+SDL_Surface *graphics, *screen, *menu_bg, *menu_button, *menu_header, *menu_tux, *thousand_tux, *menu_random, *menu_help;  // Graphics data, screen data, menu data
 
 // Auto-Control
 int auto_control_val = 1;	//KI ist aktiviert
@@ -394,8 +396,9 @@ int init_SDL() {
 	menu_tux = SDL_LoadBMP("flying_tux.bmp");
 	thousand_tux = SDL_LoadBMP("Tux_icon_32x32.bmp");
 	menu_random = SDL_LoadBMP("zufall.bmp");
+	menu_help = SDL_LoadBMP("tasten.bmp");
 
-    if (!graphics || !menu_bg || !menu_button || !menu_header || !menu_tux || !menu_random) {
+    if (!graphics || !menu_bg || !menu_button || !menu_header || !menu_tux || !menu_random || !menu_help) {
 	    printf("Unable to load bitmaps: %s\n", SDL_GetError());  exit(1);
 	}
 	// Set transparency color
@@ -560,8 +563,11 @@ void paint_menu(int *tux_x, int *random)
 	draw_image(menu_tux, (*tux_x), 130, MENU_TUX_WIDTH, MENU_TUX_HEIGHT);
 	(*tux_x) = ((*tux_x)+10)%Win_width;
 
-	//Random?
+	//Random Button
 	draw_zufall(round(Win_width/2)-round(MENU_BUTTON_WIDTH/2), 230, 1-(*random));
+
+	//Help
+	draw_image(menu_help, round(Win_width/2)-round(MENU_HELP_WIDTH/2), 510, MENU_HELP_WIDTH, MENU_HELP_HEIGHT);
 
 
 	SDL_Flip(screen);
@@ -675,7 +681,6 @@ int process_menu_click(char *left_clicked, int *random)
 	else if((*left_clicked)) {//was pressed, is not now
 		//is in button x bounds
 		int x1 = round(Win_width/2)-round(MENU_BUTTON_WIDTH/2);
-		printf("X: %d, Y: %d, X1: %d, X2: %d\n", x, y, x1, x1+MENU_RANDOM_WIDTH);
 		if (x >= x1 && x <= x+MENU_RANDOM_WIDTH) {
 					printf("X\n");
 					if(y >= 230 && y <= 280) { //Random
@@ -937,7 +942,7 @@ int main(int argc, char *argv[]) {
 				 * - der Player links au�erhalb der Bewegungsreichweite ist und sich nach rechts bewegen m�chte
 				 */
 				if ((player.x + Size_tile <= Win_width && player.x >= MIN_PLAYER_X) || (player.x + Size_tile > Win_width && key_x < 0) || (player.x < MIN_PLAYER_X && key_x > 0)) {
-					player.x+=key_x*Player_v_x;    // Calculate new x-position
+					player.x+=round(key_x*Player_v_x);    // Calculate new x-position
 					player.steps++;
 					if(player.steps>100000) player.steps=0;
 				}
@@ -957,6 +962,17 @@ int main(int argc, char *argv[]) {
     free(game.cur_max); //Free up memory of Level Definition (cur_max) Array
     free(game.element_pause); //Free up memory of Level Definition (element_pause) Array
     free(game.element); //Free up memory of Element Array
+
+
+    //Clean up Surfaces
+    SDL_FreeSurface(graphics);
+    SDL_FreeSurface(menu_bg);
+    SDL_FreeSurface(menu_button);
+    SDL_FreeSurface(menu_header);
+    SDL_FreeSurface(menu_tux);
+    SDL_FreeSurface(thousand_tux);
+    SDL_FreeSurface(menu_random);
+    SDL_FreeSurface(menu_help);
     return 0;
 }
 
