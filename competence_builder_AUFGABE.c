@@ -3,7 +3,7 @@
 	Team: Tux on the Fly
 	Members: Timo Jacobs, Felix, Otto, Stephan Pfistner, Dirk Klostermann, Nicolai Ommer, Daniel Andres Lopez
 	Releasedate: 4.5.2011
-  Licensed under BSD license. See LICENSE.txt
+   Licensed under BSD license. See LICENSE.txt
 */
 
 // Header files
